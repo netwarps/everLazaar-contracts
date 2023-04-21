@@ -6,9 +6,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155Burn
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 import "./IToken1155.sol";
 
-//contract Token1155 is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
-contract Token1155 is IToken1155, ERC1155BurnableUpgradeable, ERC1155SupplyUpgradeable, OwnableUpgradeable {
-    //constructor() ERC1155("") {
+contract ElzToken1155 is IToken1155, ERC1155BurnableUpgradeable, ERC1155SupplyUpgradeable, OwnableUpgradeable {
+
     function initialize(string memory uri_) public initializer {
         __ERC1155_init(uri_);
         __ERC1155Burnable_init();
@@ -16,8 +15,8 @@ contract Token1155 is IToken1155, ERC1155BurnableUpgradeable, ERC1155SupplyUpgra
         __Ownable_init();
     }
 
-    function setURI(string memory newuri) public override onlyOwner {
-        _setURI(newuri);
+    function setURI(string memory newUri) public override onlyOwner {
+        _setURI(newUri);
     }
 
     function mint(address account, uint256 id, uint256 amount, bytes memory data) public override onlyOwner {

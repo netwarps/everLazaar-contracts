@@ -7,51 +7,55 @@ const {expect} = require('chai');
 const deploymentParams = require('../tasks/deployment-params');
 const Confirm = require('prompt-confirm');
 
-let deployedKuggamaxName = 'Kuggamax'
-let deployedToken20Name = 'Token20'
-let deployedToken1155Name = 'Token1155'
+const initMainContractName = 'Everlazaar'
+const initToken20ContractName = 'KmcToken'
+const initToken1155ContractName = 'ElzToken1155'
+
+let deployedMainContractName = initMainContractName
+let deployedToken20ContractName = initToken20ContractName
+let deployedToken1155ContractName = initToken1155ContractName
 
 /**
- * Returns the address of the Kuggamax as set in the config, or undefined if
+ * Returns the address of the MainContract as set in the config, or undefined if
  * it hasn't been set.
  */
-function getKuggamaxAddress (hre) {
-  return hre.config.networks[hre.network.name].deployedContracts.kuggamax
+function getMainContractAddress (hre) {
+  return hre.config.networks[hre.network.name].deployedContracts.mainContract
 }
 
 /**
- * Returns the deployed instance of the Kuggamax, or undefined if its
+ * Returns the deployed instance of the MainContract, or undefined if its
  * address hasn't been set in the config.
  */
-async function getDeployedKuggamax (hre) {
-  const kuggamaxAddress = getKuggamaxAddress(hre)
-  if (!kuggamaxAddress) {
-    console.error(`Please, set the kuggamax's address in config`)
+async function getDeployedContracts (hre) {
+  const mainContractAddress = getMainContractAddress(hre)
+  if (!mainContractAddress) {
+    console.error(`Please, set the [%s] address in config`, deployedMainContractName)
     return
   }
-  if (deployedKuggamaxName === undefined) {
-    deployedKuggamaxName = 'Kuggamax'
-    console.log('set default kuggamax name:', deployedKuggamaxName)
+  if (deployedMainContractName === undefined) {
+    deployedMainContractName = initMainContractName
+    console.log('set default main contract name:', deployedMainContractName)
   }
-  if (deployedToken20Name === undefined) {
-    deployedToken20Name = 'Token20'
-    console.log('set default token20 name:', deployedToken20Name)
+  if (deployedToken20ContractName === undefined) {
+    deployedToken20ContractName = initToken20ContractName
+    console.log('set default token20 name:', deployedToken20ContractName)
   }
-  if (deployedToken1155Name === undefined) {
-    deployedToken1155Name = 'Token1155'
-    console.log('set default name token1155:', deployedToken1155Name)
+  if (deployedToken1155ContractName === undefined) {
+    deployedToken1155ContractName = initToken1155ContractName
+    console.log('set default name token1155:', deployedToken1155ContractName)
   }
-  console.log('Deployed Kuggamax name:', deployedKuggamaxName)
-  console.log('Deployed Token20 name:', deployedToken20Name)
-  console.log('Deployed Token1155 name:', deployedToken1155Name)
+  console.log('Deployed mainContract name:', deployedMainContractName)
+  console.log('Deployed Token20 name:', deployedToken20ContractName)
+  console.log('Deployed Token1155 name:', deployedToken1155ContractName)
 
-  const kuggamax = await hre.ethers.getContractAt(deployedKuggamaxName, kuggamaxAddress)
-  const erc20Address = await kuggamax.kuggaToken()
+  const mainContract = await hre.ethers.getContractAt(deployedMainContractName, mainContractAddress)
+  const erc20Address = await mainContract.kmc()
 
-  const kmcToken = await hre.ethers.getContractAt(deployedToken20Name, erc20Address)
-  const erc1155Address = await kuggamax.kugga1155()
-  const itemToken = await hre.ethers.getContractAt(deployedToken1155Name, erc1155Address)
-  return { kuggamax, kmcToken, itemToken }
+  const kmcToken = await hre.ethers.getContractAt(deployedToken20ContractName, erc20Address)
+  const erc1155Address = await mainContract.token1155()
+  const token1155 = await hre.ethers.getContractAt(deployedToken1155ContractName, erc1155Address)
+  return { mainContract, kmcToken, token1155 }
 }
 
 
@@ -70,21 +74,16 @@ async function hasEnoughTokens (tokenContract, tokensOwner, amount) {
   return balance.gte(amount)
 }
 
-async function getFirstAccount () {
-  const accounts = await web3.eth.getAccounts()
-  return accounts[0]
-}
-
 function buildDomain(name, version, chainId, verifyingContract) {
   return { name, version, chainId, verifyingContract }
 }
 
-const getRandItemHash = (labId) => {
-  const itemContent = Buffer.from('itemContent-' + labId + '-' + randomBytes(8), 'utf8')
+const getRandContentHash = () => {
+  const itemContent = Buffer.from('articleContent-' + '-' + randomBytes(8), 'utf8')
   return sha256(itemContent)
 }
 
-//permit approve kmc to kuggamax contract
+//permit approve kmc to mainContract contract
 const permitApproveKmc = async (kmcToken, owner, spender, amount, hre) => {
   const name = await kmcToken.name()
   const version = '1'
@@ -124,27 +123,35 @@ const permitApproveKmc = async (kmcToken, owner, spender, amount, hre) => {
 }
 
 
+function getDeployedMainContractName () {
+  return deployedMainContractName
+}
+function getDeployedToken20Name () {
+  return deployedToken20ContractName
+}
+function getDeployedToken1155Name () {
+  return deployedToken1155ContractName
+}
 
-function setDeployedKuggamaxName (name) {
-  deployedKuggamaxName = name
+function setDeployedMainContractName (name) {
+  deployedMainContractName = name
 }
 function setDeployedToken20Name (name) {
-  deployedToken20Name = name
+  deployedToken20ContractName = name
 }
 function setDeployedToken1155Name (name) {
-  deployedToken1155Name = name
+  deployedToken1155ContractName = name
 }
 
 /*
- * Deploy Kuggamax, Kmc, Token1155 contract by Proxy to support upgrade.
+ * Deploy MainContract, Kmc, Token1155 contract by Proxy to support upgrade.
  */
 const deployAllByProxy = async (needConfirm, hre) => {
   console.log('------------------------------------------------------')
-  console.log('Deploying Kuggamax, Token20, Token1155 by Proxy:')
+  console.log('Deploying [%s], [%s], [%s] by Proxy:', deployedMainContractName, deployedToken20ContractName, deployedToken1155ContractName)
   console.log(
     'Deployment parameters:\n',
-    '  labDeposit :', deploymentParams.LAB_DEPOSIT, '\n',
-    '  itemDeposit:', deploymentParams.ITEM_DEPOSIT, '\n',
+    '  articleDeposit:', deploymentParams.ARTICLE_DEPOSIT, '\n',
     '  mintDeposit:', deploymentParams.MINT_DEPOSIT, '\n',
     '  initKmcSupply:', deploymentParams.INITIAL_KMC_SUPLY, '\n'
   )
@@ -164,43 +171,42 @@ const deployAllByProxy = async (needConfirm, hre) => {
   }
 
   //KmcToken
-  console.log('Start to deploy kmcToken:')
-  const Token = await  hre.ethers.getContractFactory('Token20')
-  const kmcToken = await  hre.upgrades.deployProxy(Token, [supply], { initializer: 'initialize' })
+  console.log('Start to deploy [%s]:', deployedToken20ContractName)
+  const kmcFactory = await  hre.ethers.getContractFactory(deployedToken20ContractName)
+  const kmcToken = await hre.upgrades.deployProxy(kmcFactory, [supply], { initializer: 'initialize' })
   await kmcToken.deployed()
 
-  console.log('KmcToken Proxy address:', kmcToken.address)
-  console.log('KmcToken supply:', await kmcToken.totalSupply())
+  console.log('[%s] Proxy address:', deployedToken20ContractName, kmcToken.address)
+  console.log('[%s] supply:', deployedToken20ContractName, await kmcToken.totalSupply())
   console.log('')
 
   //Token1155
-  console.log('Start to deploy Token1155:')
-  const Token1155 = await hre.ethers.getContractFactory('Token1155')
+  console.log('Start to deploy %s:', deployedToken1155ContractName)
+  const Token1155 = await hre.ethers.getContractFactory(deployedToken1155ContractName)
   const token1155 = await hre.upgrades.deployProxy(Token1155, [''])
   await token1155.deployed()
 
-  console.log('Token1155 Proxy address:', token1155.address)
+  console.log('%s Proxy address:', deployedToken1155ContractName, token1155.address)
   console.log('')
 
-  //kuggamax
-  console.log('Start to deploy Kuggamax:')
-  const Kuggamax = await  hre.ethers.getContractFactory('Kuggamax')
-  const kuggamax = await  hre.upgrades.deployProxy(Kuggamax, [
+  //Main contract
+  console.log('Start to deploy [%s]:', deployedMainContractName)
+  const mainFactory = await  hre.ethers.getContractFactory(deployedMainContractName)
+  const mainContract = await  hre.upgrades.deployProxy(mainFactory, [
     kmcToken.address,
     token1155.address,
-    deploymentParams.LAB_DEPOSIT,
-    deploymentParams.ITEM_DEPOSIT,
+    deploymentParams.ARTICLE_DEPOSIT,
     deploymentParams.MINT_DEPOSIT,
   ])
 
-  await kuggamax.deployed()
+  await mainContract.deployed()
 
-  console.log('Kuggamax Proxy Address:', kuggamax.address)
-  console.log('KMC in Kuggamax:',  hre.ethers.utils.formatEther(await kmcToken.balanceOf(kuggamax.address)))
+  console.log('[%s] Proxy Address:', deployedMainContractName, mainContract.address)
+  console.log('KMC in [%s]:', deployedMainContractName, hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
   console.log('')
 
   const accounts = await  hre.ethers.getSigners()
-  const chainId = await kuggamax.signer.getChainId()
+  const chainId = await mainContract.signer.getChainId()
 
   console.log('account0:' + accounts[0].address)
   console.log('account1:' + accounts[1].address)
@@ -208,25 +214,28 @@ const deployAllByProxy = async (needConfirm, hre) => {
   console.log('balance:', await kmcToken.balanceOf(accounts[0].address))
   expect(await kmcToken.balanceOf(accounts[0].address)).to.equals(supply)
 
-  //transfer token1155's ownership, from deployer to Kuggamax contract
-  await token1155.transferOwnership(kuggamax.address)
-  expect(await token1155.owner()).to.be.eq(kuggamax.address)
-  console.log('Transfer token1155 ownership to Kuggamax contract succeed')
+  //transfer token1155's ownership, from deployer to main contract
+  await token1155.transferOwnership(mainContract.address)
+  expect(await token1155.owner()).to.be.eq(mainContract.address)
+  console.log('Transfer token1155 ownership to [%s] contract succeed', deployedMainContractName)
 
-  return { kuggamax, kmcToken, token1155, accounts, chainId }
+  return { mainContract, kmcToken, token1155, accounts, chainId }
 
 }
 
 module.exports = {
   deployAllByProxy,
-  getDeployedKuggamax,
+  getDeployedContracts,
   giveAllowance,
   hasEnoughAllowance,
   hasEnoughTokens,
   buildDomain,
-  getRandItemHash,
+  getRandContentHash,
   permitApproveKmc,
-  setDeployedKuggamaxName,
+  getDeployedMainContractName,
+  getDeployedToken20Name,
+  getDeployedToken1155Name,
+  setDeployedMainContractName,
   setDeployedToken20Name,
   setDeployedToken1155Name,
 }

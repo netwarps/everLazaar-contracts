@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155Supp
 
 interface IToken1155 is IERC1155Upgradeable, IERC1155MetadataURIUpgradeable {
 
-  function setURI(string memory newuri) external;
+  function setURI(string memory newUri) external;
 
   function exists(uint256 id) external view returns (bool);
 
@@ -15,7 +15,4 @@ interface IToken1155 is IERC1155Upgradeable, IERC1155MetadataURIUpgradeable {
 
   function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) external;
 
-  // The following functions are overrides required by Solidity.
-
-  //function _beforeTokenTransfer(address operator, address from, address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) internal;
 }

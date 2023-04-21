@@ -3,7 +3,13 @@ const {task} = require("hardhat/config")
 const Confirm = require("prompt-confirm")
 const {
   deployAllByProxy,
-  getDeployedKuggamax, setDeployedKuggamaxName, setDeployedToken20Name, setDeployedToken1155Name
+  getDeployedContracts,
+  getDeployedMainContractName,
+  getDeployedToken20Name,
+  getDeployedToken1155Name,
+  setDeployedMainContractName,
+  setDeployedToken20Name,
+  setDeployedToken1155Name
 } = require("../scripts/utils")
 
 
@@ -11,20 +17,24 @@ const {
 async function upgradeContract(hre, newContractName) {
   await hre.run('compile')
 
-  const { kuggamax, kmcToken, itemToken } = await getDeployedKuggamax(hre)
-  let prevContractProxyAddr = kuggamax.address
+  const { mainContract, kmcToken, token1155 } = await getDeployedContracts(hre)
+  let prevContractProxyAddr = mainContract.address
 
   console.log('Upgrading new version [%s] contract to network [%s] by script:', newContractName, hre.network.name)
   console.log('Make sure the previous version contract has been deployed in this network.')
-  console.log('Make sure the correct Kuggamax contract Proxy address has been configured in [hardhat.config.js]')
+  console.log('Make sure the correct Main contract Proxy address has been configured in [hardhat.config.js]')
+
+  const oldMainContractName = getDeployedMainContractName()
+  const oldToken20ContractName = getDeployedToken20Name()
+  const oldToken1155ContractName = getDeployedToken1155Name()
 
   console.log('')
-  console.log('Old Kuggamax  Proxy addr:', kuggamax.address)
-  console.log('Old Token20   Proxy addr:', kmcToken.address)
-  console.log('Old Token1155 Proxy addr:', itemToken.address)
+  console.log('Old [%s] Proxy addr:', oldMainContractName, mainContract.address)
+  console.log('Old [%s] Proxy addr:', oldToken20ContractName, kmcToken.address)
+  console.log('Old [%s] Proxy addr:', oldToken1155ContractName, token1155.address)
   console.log('New name:', newContractName)
 
-  if (kuggamax === undefined || kmcToken === undefined || itemToken === undefined) {
+  if (mainContract === undefined || kmcToken === undefined || token1155 === undefined) {
     console.log('get Proxy addr failed !!')
     return false
   }
@@ -39,15 +49,15 @@ async function upgradeContract(hre, newContractName) {
 
   const lowNewName = newContractName.toLowerCase()
 
-  if (lowNewName.indexOf('token20') >= 0) {
+  if (lowNewName.indexOf(oldToken20ContractName) >= 0) {
     prevContractProxyAddr = kmcToken.address
-    console.log('will upgrade token20')
-  } else if (lowNewName.indexOf('token1155') >= 0) {
-    console.log('will upgrade token1155')
-    prevContractProxyAddr = itemToken.address
-  } else if (lowNewName.indexOf('kuggamax') >= 0) {
-    prevContractProxyAddr = kuggamax.address
-    console.log('will upgrade Kuggamax')
+    console.log('will upgrade [%s]', oldToken20ContractName)
+  } else if (lowNewName.indexOf(oldToken1155ContractName) >= 0) {
+    console.log('will upgrade [%s]', oldToken1155ContractName)
+    prevContractProxyAddr = token1155.address
+  } else if (lowNewName.indexOf(oldMainContractName) >= 0) {
+    prevContractProxyAddr = mainContract.address
+    console.log('will upgrade [%s]', oldMainContractName)
   } else {
     console.log('newContractName may be NOT correct, please check !!')
     return false
@@ -73,9 +83,9 @@ async function upgradeContract(hre, newContractName) {
 }
 
 /**
- * This task using proxy to deploy Kuggamax,Token20,Token1155 contracts to test or formal network for the first time.
+ * This task using proxy to deploy Main contract, Token20, Token1155 contracts to test or formal network for the first time.
  */
-task("deploy-all-proxy", 'Deploys new instance of Kuggamax,Token20,Token1155 to network by Proxy')
+task("deploy-all-proxy", 'Deploys new instance of Main contract,Token20,Token1155 to network by Proxy')
   .setAction(async (_, hre) => {
 
     console.log('Deploying all contracts to network[%s] by Proxy', hre.network.name)
@@ -94,14 +104,15 @@ task("deploy-all-proxy", 'Deploys new instance of Kuggamax,Token20,Token1155 to 
     console.log("Deploying contracts with the account:", admin.address)
     console.log("Deployer native token balance:", (await admin.getBalance()).toString())
 
-    const {kuggamax, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
+    const {mainContract, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
 
-    await kmcToken.transfer(kuggamax.address, await kmcToken.totalSupply())
+    await kmcToken.transfer(mainContract.address, await kmcToken.totalSupply())
 
+    const mainContractName = getDeployedMainContractName()
     console.log('')
-    console.log('Kuggamax deployed. Address:', kuggamax.address)
-    console.log('KMC in Kuggamax:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(kuggamax.address)))
-    console.log('Deployed Kuggamax, Token20, Token1155 to network[%s], chainId[%d] succeed ...', hre.network.name, chainId)
+    console.log('[%s] deployed. Address:', mainContractName, mainContract.address)
+    console.log('KMC in [%s]:', mainContractName, hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
+    console.log('Deployed [%s], Token20, Token1155 to network[%s], chainId[%d] succeed ...', mainContractName, hre.network.name, chainId)
     console.log('--------------------------------------------------------------------------------')
     console.log("Set this address in hardhat.config.js's networks section to use the other tasks !!!")
     console.log('--------------------------------------------------------------------------------')
@@ -109,10 +120,10 @@ task("deploy-all-proxy", 'Deploys new instance of Kuggamax,Token20,Token1155 to 
   })
 
 /**
- * This task is used to deploy Kuggamax,Token20,Token1155 contracts to test or formal network for the first time.
+ * This task is used to deploy Main,Token20,Token1155 contracts to test or formal network for the first time.
  * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'Token20V2'
  * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'Token1155V2'
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'KuggamaxV2'
+ * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'MainV2'
  */
 task("upgrade-contract", 'Upgrades a specified contract to network')
   .addParam('newContractName', 'The name of the new contract ' +
@@ -129,14 +140,14 @@ task("upgrade-contract", 'Upgrades a specified contract to network')
 
 //eg: npx hardhat upgrade-test --network localhost --new-contract-name Token20
 task("upgrade-test", 'Tests the contract after upgrading a specified contract to network')
-  .addParam('curKuggamaxName', 'The name of the current Kuggamax contract ')
+  .addParam('curMainContractName', 'The name of the current main contract ')
   .addParam('curToken20Name', 'The name of the current Token20 contract ')
   .addParam('curToken1155Name', 'The name of the current Token1155 contract ')
-  .setAction(async ({curKuggamaxName, curToken20Name, curToken1155Name}, hre) => {
+  .setAction(async ({curMainContractName, curToken20Name, curToken1155Name}, hre) => {
     console.log('Testing the upgraded contract in network [%s]', hre.network.name)
 
-    if (curKuggamaxName === undefined || curKuggamaxName === '') {
-      console.log('invalid curKuggamaxName')
+    if (curMainContractName === undefined || curMainContractName === '') {
+      console.log('invalid curMainContractName')
       return
     }
     if (curToken20Name === undefined || curToken20Name === '') {
@@ -148,24 +159,24 @@ task("upgrade-test", 'Tests the contract after upgrading a specified contract to
       return
     }
 
-    setDeployedKuggamaxName(curKuggamaxName)
+    setDeployedMainContractName(curMainContractName)
     setDeployedToken20Name(curToken20Name)
     setDeployedToken1155Name(curToken1155Name)
 
-    const {kuggamax, kmcToken, itemToken} = await getDeployedKuggamax(hre)
+    const {mainContract, kmcToken, token1155} = await getDeployedContracts(hre)
 
-    expect(kuggamax !== undefined)
+    expect(mainContract !== undefined)
     expect(kmcToken !== undefined)
-    expect(itemToken !== undefined)
+    expect(token1155 !== undefined)
 
     const [admin] = await hre.ethers.getSigners()
 
     console.log('kmcToken version:', await kmcToken.version())
     await kmcToken.setVersion('v2')
     console.log('kmcToken version:', await kmcToken.version())
-    console.log('itemToken total supply:', await itemToken.totalSupply(admin.address))
-    await kuggamax.setVersion('v2')
-    console.log('kuggamax version:', await kuggamax.version())
-    // console.log('kuggamax getX():', await kuggamax.getX())
+    console.log('token1155 total supply:', await token1155.totalSupply(admin.address))
+    await mainContract.setVersion('v2')
+    console.log('mainContract version:', await mainContract.version())
+    // console.log('mainContract getX():', await mainContract.getX())
     console.log('\nTest contract succeed !!\n')
   })

@@ -3,7 +3,7 @@ require('@openzeppelin/hardhat-upgrades');
 require('dotenv').config();
 
 require("./tasks/deploy-upgrade-tasks");
-require("./tasks/kuggamax-tasks");
+require("./tasks/function-tasks");
 
 
 const ACCOUNT_PRIVATE_KEY = process.env.ACCOUNT_PRIVATE_KEY;
@@ -60,7 +60,7 @@ module.exports = {
   networks: {
     localhost: {
       deployedContracts: {
-        kuggamax: '0x0165878A594ca255338adfa4d48449f69242Eb8F'
+        mainContract: '0x0165878A594ca255338adfa4d48449f69242Eb8F'
       }
     },
     // ropsten: {
@@ -71,7 +71,7 @@ module.exports = {
     //   url: `https://rpc-mumbai.maticvigil.com/`,
     //   accounts: [`0x${MATIC_PRIVATE_KEY}`],
     //   deployedContracts: {
-    //     kuggamax: '0xdf6B79624a2fc9C84ca7029e677ab482cF4BE2A0',
+    //     mainContract: '0xdf6B79624a2fc9C84ca7029e677ab482cF4BE2A0',
     //   }
     // },
     matic: {
@@ -83,7 +83,7 @@ module.exports = {
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
-          kuggamax: '0x2F7B9cAdBDf555F035201BBa9F48784472e1F312'
+          mainContract: '0x2F7B9cAdBDf555F035201BBa9F48784472e1F312'
         }
     }
   }

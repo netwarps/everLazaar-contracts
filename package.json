@@ -1,5 +1,5 @@
 {
-  "name": "kuggamax",
+  "name": "everlazaar",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -20,7 +20,7 @@
     "chai-as-promised": "^7.1.1",
     "ethereum-waffle": "^3.4.4",
     "ethers": "5.7.1",
-    "hardhat": "^2.12.0"
+    "hardhat": "^2.14.0"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",

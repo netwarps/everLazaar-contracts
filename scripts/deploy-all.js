@@ -21,14 +21,14 @@ async function main() {
   console.log("Deploying contracts with the account:", admin.address)
   console.log("Deployer native token balance:", (await admin.getBalance()).toString())
 
-  const {kuggamax, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
+  const {everlazaar, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
 
-  await kmcToken.transfer(kuggamax.address, await kmcToken.totalSupply())
+  await kmcToken.transfer(everlazaar.address, await kmcToken.totalSupply())
 
   console.log('')
-  console.log('Kuggamax deployed. Address:', kuggamax.address)
-  console.log('KMC in Kuggamax:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(kuggamax.address)))
-  console.log('Deployed Kuggamax, Token20, Token1155 to network[%s], chainId[%d] succeed !!!', hre.network.name, chainId)
+  console.log('Main contract deployed. Address:', everlazaar.address)
+  console.log('Kmc balance of main contract:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(everlazaar.address)))
+  console.log('Deployed Everlazaar, Kmc, ElzToken1155 to network[%s], chainId[%d] succeed !!!', hre.network.name, chainId)
 
 }
 
