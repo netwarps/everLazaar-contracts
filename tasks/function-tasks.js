@@ -399,9 +399,9 @@ task('permit-create-article', 'Permits someone to execute new article creation o
 
 
 task('permit-mint', 'Permits someone to execute article mint operation instead by verifying signature')
-  .addParam('articleContractID', 'The article contract id will be minted')
+  .addParam('articleContractId', 'The article contract id will be minted')
   .addParam('amount', 'The amount of article will be minted')
-  .setAction(async ({ articleContractID, amount }, hre) => {
+  .setAction(async ({ articleContractId, amount }, hre) => {
     await hre.run('compile')
 
     const { mainContract, kmcToken } = await getDeployedContracts(hre)
@@ -429,7 +429,7 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
     const nonce = await mainContract.nonces(owner.address)
     console.log('nonce=', nonce)
 
-    console.log('param:', articleContractID, amount)
+    console.log('param:', articleContractId, amount)
 
     const balanceOfOwner = await kmcToken.balanceOf(owner.address)
     console.log('owner KMC balance:', balanceOfOwner.toString())
@@ -437,9 +437,9 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
     const nativeBalance = hre.ethers.utils.formatEther(await owner.getBalance())
     console.log('owner native balance: ', nativeBalance)
 
-    const articleContractId = Number(articleContractID)
+    const articleId = Number(articleContractId)
     const Amount = Number(amount)
-    console.log('articleContractId:', articleContractId)
+    console.log('articleContractId:', articleId)
     console.log('Amount:', Amount)
 
     const domain = buildDomain(name, version, chainId, mainContract.address)
@@ -453,7 +453,7 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
     }
     const data = {
       owner: owner.address,
-      articleContractId: articleContractId,
+      articleContractId: articleId,
       amount: Amount,
       nonce: nonce,
     }
@@ -467,9 +467,9 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
     console.log('v, r, s:', v, r, s)
 
     //test method and Event with argument
-    await expect(mainContract.connect(caller).permitMint(articleContractId, Amount, owner.address, v, r, s))
+    await expect(mainContract.connect(caller).permitMint(articleId, Amount, owner.address, v, r, s))
       .to.emit(mainContract, "ArticleMinted")
-      .withArgs(owner.address, articleContractId, Amount)
+      .withArgs(owner.address, articleId, Amount)
 
 
     // //test method and get receipt
