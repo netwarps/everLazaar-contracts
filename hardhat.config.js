@@ -7,6 +7,7 @@ require("./tasks/function-tasks");
 
 
 const ACCOUNT_PRIVATE_KEY = process.env.ACCOUNT_PRIVATE_KEY;
+const USER_ACCOUNT_PRIVATE_KEY = process.env.USER_ACCOUNT_PRIVATE_KEY
 const NODE_API_KEY = process.env.INFURA_API_KEY || process.env.ALCHEMY_API_KEY;
 const isInfura = !!process.env.INFURA_API_KEY;
 
@@ -39,8 +40,8 @@ const polygonNumbaiNodeUrl = isInfura
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  defaultNetwork: 'maticmum',
- //defaultNetwork: 'localhost',
+  //defaultNetwork: 'maticmum',
+  defaultNetwork: 'localhost',
   solidity: {
     version:  "0.8.4",
     settings: {
@@ -81,7 +82,7 @@ module.exports = {
     maticmum: {
         url: polygonNumbaiNodeUrl,
         gasLimit:46000000,
-        accounts: [`0x${ACCOUNT_PRIVATE_KEY}`],
+        accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
           mainContract: '0x27a4aDb7f58D57c3769B158cb967D24C7b54D65a'
         }

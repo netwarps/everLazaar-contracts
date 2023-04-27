@@ -263,7 +263,13 @@ task('debug', 'Shows debug info')
       console.log('article', i, a)
     }
 
-    const [sender] = await hre.ethers.getSigners()
+    const accounts = await hre.ethers.getSigners()
+    const sender = accounts[0]
+
+    console.log('Accounts num:', accounts.length)
+    for (let i = 0; i < accounts.length; i++) {
+      console.log('accounts[%d].addr=[%s]', i, accounts[i].address)
+    }
 
     console.log("Kmc address:", kmcToken.address)
     console.log("Kmc supply:", hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
