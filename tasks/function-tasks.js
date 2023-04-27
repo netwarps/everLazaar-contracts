@@ -11,7 +11,8 @@ const {
   buildDomain,
   permitApproveKmc,
   getRandContentHash,
-  deployAllByProxy, getDeployedMainContractName,
+  deployAllByProxy,
+  getDeployedMainContractName,
 } = require('../scripts/utils')
 
 const deploymentParams = require("./deployment-params")
@@ -192,6 +193,61 @@ task('admin-withdraw', 'Administrator withdraw native tokens from Main contract'
 
   })
 
+
+task('set-article-deposit', 'Administrator set value of article create deposit')
+  .addParam('amount', "The amount of native tokens to set")
+  .setAction(async ({ amount }, hre) => {
+    // Make sure everything is compiled
+    await hre.run('compile')
+
+    const { mainContract, kmcToken } = await getDeployedContracts(hre)
+    if (mainContract === undefined || kmcToken === undefined) {
+      return
+    }
+
+    const [admin] = await hre.ethers.getSigners()
+
+    const deposit = hre.ethers.utils.parseEther(amount)
+    console.log('set deposit: ', deposit)
+    const oldDeposit = await mainContract.articleDeposit()
+    console.log('oldDeposit: ', oldDeposit)
+
+    await mainContract.setArticleDeposit(deposit)
+
+    const newDeposit = await mainContract.articleDeposit()
+    console.log('newDeposit: ', newDeposit)
+
+    //expect(newDeposit).to.be.equal(deposit)
+
+  })
+
+task('set-mint-deposit', 'Administrator set value of article mint deposit')
+  .addParam('amount', "The amount of native tokens to set")
+  .setAction(async ({ amount }, hre) => {
+    // Make sure everything is compiled
+    await hre.run('compile')
+
+    const { mainContract, kmcToken } = await getDeployedContracts(hre)
+    if (mainContract === undefined || kmcToken === undefined) {
+      return
+    }
+
+    const [admin] = await hre.ethers.getSigners()
+
+    const deposit = hre.ethers.utils.parseEther(amount)
+    console.log('set deposit: ', deposit)
+    const oldDeposit = await mainContract.mintDeposit()
+    console.log('oldDeposit: ', oldDeposit)
+
+    await mainContract.setMintDeposit(deposit)
+
+    const newDeposit = await mainContract.mintDeposit()
+    console.log('newDeposit: ', newDeposit)
+
+    //expect(newDeposit).to.be.equal(deposit)
+
+  })
+
 task('debug', 'Shows debug info')
   .setAction(async (_, hre) => {
 
@@ -207,10 +263,13 @@ task('debug', 'Shows debug info')
       console.log('article', i, a)
     }
 
-    const [sender, sender1] = await hre.ethers.getSigners()
+    const [sender] = await hre.ethers.getSigners()
 
-    console.log("Token20 address:", kmcToken.address)
-    console.log("Token20 supply:", hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
+    console.log("Kmc address:", kmcToken.address)
+    console.log("Kmc supply:", hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
+
+    console.log("articleDeposit:", hre.ethers.utils.formatEther(await mainContract.articleDeposit()))
+    console.log("mintDeposit   :", hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
 
     const k0 = await sender.getBalance()
     console.log('native balance of sender', hre.ethers.utils.formatEther(k0))
@@ -222,7 +281,6 @@ task('debug', 'Shows debug info')
 
 
     console.log('KMC balance0', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
-    console.log('KMC balance1', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender1.address))))
     console.log('KMC balance of mainContract', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
     // console.log('balance of Guild', hre.ethers.utils.formatEther((await kmcToken.balanceOf(guildAddress))))
   })

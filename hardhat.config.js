@@ -39,8 +39,8 @@ const polygonNumbaiNodeUrl = isInfura
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  //defaultNetwork: 'maticmum',
-  defaultNetwork: 'localhost',
+  defaultNetwork: 'maticmum',
+ //defaultNetwork: 'localhost',
   solidity: {
     version:  "0.8.4",
     settings: {
@@ -83,7 +83,7 @@ module.exports = {
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
-          mainContract: '0x2F7B9cAdBDf555F035201BBa9F48784472e1F312'
+          mainContract: '0x27a4aDb7f58D57c3769B158cb967D24C7b54D65a'
         }
     }
   }

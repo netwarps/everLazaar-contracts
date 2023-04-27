@@ -152,9 +152,10 @@ const deployAllByProxy = async (needConfirm, hre) => {
   console.log(
     'Deployment parameters:\n',
     '  articleDeposit:', deploymentParams.ARTICLE_DEPOSIT, '\n',
-    '  mintDeposit:', deploymentParams.MINT_DEPOSIT, '\n',
-    '  initKmcSupply:', deploymentParams.INITIAL_KMC_SUPLY, '\n'
+    '  mintDeposit   :', deploymentParams.MINT_DEPOSIT, '\n',
+    '  initKmcSupply :', deploymentParams.INITIAL_KMC_SUPLY, '\n'
   )
+
 
   await hre.run('compile')
 
@@ -172,21 +173,22 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   //KmcToken
   console.log('Start to deploy [%s]:', deployedToken20ContractName)
-  const kmcFactory = await  hre.ethers.getContractFactory(deployedToken20ContractName)
-  const kmcToken = await hre.upgrades.deployProxy(kmcFactory, [supply], { initializer: 'initialize' })
+  const kmcFactory = await hre.ethers.getContractFactory(deployedToken20ContractName)
+  const kmcToken = await hre.upgrades.deployProxy(kmcFactory, [supply], {initializer: 'initialize'})
   await kmcToken.deployed()
 
   console.log('[%s] Proxy address:', deployedToken20ContractName, kmcToken.address)
   console.log('[%s] supply:', deployedToken20ContractName, await kmcToken.totalSupply())
   console.log('')
 
+
   //Token1155
-  console.log('Start to deploy %s:', deployedToken1155ContractName)
+  console.log('Start to deploy [%s]:', deployedToken1155ContractName)
   const Token1155 = await hre.ethers.getContractFactory(deployedToken1155ContractName)
   const token1155 = await hre.upgrades.deployProxy(Token1155, [''])
   await token1155.deployed()
 
-  console.log('%s Proxy address:', deployedToken1155ContractName, token1155.address)
+  console.log('[%s] Proxy address:', deployedToken1155ContractName, token1155.address)
   console.log('')
 
   //Main contract
@@ -209,7 +211,7 @@ const deployAllByProxy = async (needConfirm, hre) => {
   const chainId = await mainContract.signer.getChainId()
 
   console.log('account0:' + accounts[0].address)
-  console.log('account1:' + accounts[1].address)
+  //console.log('account1:' + accounts[1].address)
 
   console.log('balance:', await kmcToken.balanceOf(accounts[0].address))
   expect(await kmcToken.balanceOf(accounts[0].address)).to.equals(supply)

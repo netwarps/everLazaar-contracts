@@ -20,6 +20,12 @@ To install this project run `npm install`.
 
 ## Testing
 
+Before run test, make sure a local hardhat node was running.
+
+```
+npx hardhat node
+```
+
 For Everlazaar unit test, you could run the hardhat test command.
 
 ```
@@ -54,6 +60,10 @@ npx hardhat deploy-all-proxy
 npx hardhat deposit --amount 0.1
 
 npx hardhat withdraw --amount 2
+
+npx hardhat set-article-deposit --amount 0.02
+
+npx hardhat set-mint-deposit --amount 0.2
 
 npx hardhat debug
 
