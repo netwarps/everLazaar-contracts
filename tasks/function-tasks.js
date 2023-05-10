@@ -16,6 +16,7 @@ const {
 } = require('../scripts/utils')
 
 const deploymentParams = require("./deployment-params")
+const Confirm = require("prompt-confirm");
 
 
 /**
@@ -408,8 +409,7 @@ task('permit-create-article', 'Permits someone to execute new article creation o
     const nativeBalance = hre.ethers.utils.formatEther(await owner.getBalance())
     console.log('owner native balance: ', nativeBalance)
 
-    const contentHash = getRandContentHash()
-    console.log('contentHash:', contentHash, typeof(contentHash))
+    const contentHash = getRandContentHash('aaa')
 
     const domain = buildDomain(name, version, chainId, mainContract.address)
     const types = {
@@ -431,7 +431,17 @@ task('permit-create-article', 'Permits someone to execute new article creation o
     const signature = await owner._signTypedData(domain, types, data)
     //console.log('signature:', signature)
     const { v, r, s } = hre.ethers.utils.splitSignature(signature) //fromRpcSig(signature)
-    // console.log('v, r, s:', v, r, s)
+    console.log('contentHash:', contentHash, typeof(contentHash))
+    console.log('owner.addr:', owner.address)
+    console.log('v, r, s:', v, r, s)
+
+    const prompt = new Confirm('Continue to create article?')
+    const confirmation = await prompt.run()
+
+    if (!confirmation) {
+      console.log('You aborted the procedure !! ')
+      return
+    }
 
     //test method and Event with argument
     const newArticleContractId = await mainContract.getArticleCount()

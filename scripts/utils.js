@@ -78,8 +78,8 @@ function buildDomain(name, version, chainId, verifyingContract) {
   return { name, version, chainId, verifyingContract }
 }
 
-const getRandContentHash = () => {
-  const itemContent = Buffer.from('articleContent-' + '-' + randomBytes(8), 'utf8')
+const getRandContentHash = (c) => {
+  const itemContent = Buffer.from(c, 'utf8')
   return sha256(itemContent)
 }
 
