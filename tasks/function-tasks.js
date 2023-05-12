@@ -391,7 +391,7 @@ task('permit-create-article', 'Permits someone to execute new article creation o
     const chainId = await owner.getChainId()
 
     //if owner has no enough allowance for create article, approve it by permit
-    const deposit = deploymentParams.ARTICLE_DEPOSIT
+    const deposit = await mainContract.articleDeposit()
     if (!await hasEnoughAllowance(kmcToken, owner.address, mainContract, deposit)) {
       await permitApproveKmc(kmcToken, owner, mainContract, deposit, hre)
     }
@@ -424,9 +424,9 @@ task('permit-create-article', 'Permits someone to execute new article creation o
       owner: owner.address,
       nonce: nonce,
     }
-    // console.log('domain:', domain)
-    // console.log('types:', types)
-    // console.log('data:', data)
+    console.log('domain:', domain)
+    console.log('types:', types)
+    console.log('data:', data)
 
     const signature = await owner._signTypedData(domain, types, data)
     //console.log('signature:', signature)
@@ -491,7 +491,7 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
     const chainId = await owner.getChainId()
 
     //if owner has no enough allowance for mint, approve it by permit
-    const deposit = deploymentParams.MINT_DEPOSIT
+    const deposit = await mainContract.mintDeposit()
     if (!await hasEnoughAllowance(kmcToken, owner.address, mainContract, deposit)) {
       await permitApproveKmc(kmcToken, owner, mainContract, deposit, hre)
     }
