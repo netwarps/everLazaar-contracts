@@ -319,8 +319,6 @@ task('permit-approve', 'Permits someone to execute the KMC Approve operation ins
     console.log('nonce=', nonce)
 
     const spender = mainContract.address
-    console.log('spenderAddr:', spender)
-    console.log('kmcAmount:', amount)
     let kmcAmount = hre.ethers.utils.parseEther(amount)
     if (kmcAmount <= 0) {
       kmcAmount = 10
@@ -350,10 +348,19 @@ task('permit-approve', 'Permits someone to execute the KMC Approve operation ins
       deadline: maxDeadline
     }
 
+    console.log('data:', data)
     const signature = await owner._signTypedData(domain, types, data)
     //console.log('signature:', signature)
     const { v, r, s } = hre.ethers.utils.splitSignature(signature) //fromRpcSig(signature)
-    //console.log('v, r, s:', v, r, s)
+    console.log('v, r, s:', v, r, s)
+
+    const prompt = new Confirm('Continue to approve kmc?')
+    const confirmation = await prompt.run()
+
+    if (!confirmation) {
+      console.log('You aborted the procedure !! ')
+      return
+    }
 
     //test method and get receipt
     const receipt = await kmcToken.connect(caller).permit(owner.address, spender, kmcAmount, maxDeadline, v, r, s)
