@@ -55,11 +55,12 @@ This project has tasks to work with Everlazaar contracts. To use them, you shoul
 2. Make sure you have the right address in `hardhat.config.js`'s `networks.mainnet.deployedContracts.kuggamax` field.
 
 ```
+
 npx hardhat deploy-all-proxy
 
-npx hardhat deposit --amount 0.1
+npx hardhat deposit --amount 0.002
 
-npx hardhat withdraw --amount 2
+npx hardhat withdraw --amount 1
 
 npx hardhat set-article-deposit --amount 0.02
 
@@ -72,5 +73,6 @@ npx hardhat permit-approve --amount 1
 npx hardhat permit-create-article
  
 npx hardhat permit-mint --article-contract-id 1 --amount 3
+
 ```
 

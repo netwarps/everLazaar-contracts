@@ -23,7 +23,7 @@ async function main() {
 
   const {everlazaar, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
 
-  await kmcToken.transfer(everlazaar.address, await kmcToken.totalSupply())
+  //await kmcToken.transfer(everlazaar.address, await kmcToken.totalSupply())
 
   console.log('')
   console.log('Main contract deployed. Address:', everlazaar.address)

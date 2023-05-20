@@ -1,7 +1,7 @@
-const {sha256, randomBytes} = require("ethers/lib/utils")
-const {expect} = require("chai")
-const {anyValue} = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const {task} = require("hardhat/config");
+const {sha256, randomBytes} = require('ethers/lib/utils')
+const {expect} = require('chai')
+const {anyValue} = require('@nomicfoundation/hardhat-chai-matchers/withArgs');
+const {task} = require('hardhat/config');
 
 const {
   getDeployedContracts,
@@ -15,34 +15,15 @@ const {
   getDeployedMainContractName,
 } = require('../scripts/utils')
 
-const deploymentParams = require("./deployment-params")
-const Confirm = require("prompt-confirm");
+const deploymentParams = require('./deployment-params')
+const Confirm = require('prompt-confirm');
 
 
 /**
- * This task is used to test tasks, so half of initial KMCs are kept by deployer account for subsequent test task.
+ * Note:
+ * For task test, run 'npx hardhat deploy-all-proxy' first to deploy, and choose 'n' when 'Keep initSupply Kmc in admin ?' is asked.
  */
-task('deploy-for-task', 'Deploys a new instance of Main contract for tasks')
-  .setAction(async (_, hre) => {
 
-    console.log('Deploying contracts for tasks:')
-    const [admin] = await hre.ethers.getSigners()
-
-    console.log("Deploying contracts with the account:", admin.address)
-    console.log("Deployer native token balance:", (await admin.getBalance()).toString())
-
-    const {mainContract, kmcToken} = await deployAllByProxy(false, hre)
-
-    const supply = await kmcToken.totalSupply()
-    console.log('supply:', supply)
-    await kmcToken.transfer(mainContract.address, supply.div(2))
-
-    console.log('')
-    console.log('[%s] deployed. Address:', mainContract.address)
-    console.log('KMC in [%s]:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
-    console.log('Deployed [%s] for tasks succeed !!!')
-
-  })
 
 // task('create-article', 'Creates a new article')
 //   .addParam('hash', 'The Hash value of the article', undefined, types.Bytes, true)
@@ -62,7 +43,7 @@ task('deploy-for-task', 'Deploys a new instance of Main contract for tasks')
 //     }
 //
 //     if (!await hasEnoughTokens(kmcToken, sender.address, deploymentParams.ARTICLE_DEPOSIT)) {
-//       console.error("You don't have enough KMC tokens")
+//       console.error('You don't have enough KMC tokens')
 //       return
 //     }
 //
@@ -90,7 +71,7 @@ task('deploy-for-task', 'Deploys a new instance of Main contract for tasks')
 //     const [sender] = await hre.ethers.getSigners()
 //
 //     if (!await hasEnoughTokens(kmcToken, sender.address, deploymentParams.MINT_DEPOSIT)) {
-//       console.error("You don't have enough KMC tokens")
+//       console.error('You don't have enough KMC tokens')
 //       return
 //     }
 //
@@ -104,7 +85,7 @@ task('deploy-for-task', 'Deploys a new instance of Main contract for tasks')
 //   })
 
 task('deposit', 'Deposit native tokens to get some KMC back')
-  .addParam('amount', "The amount of native token to deposit, in ETH")
+  .addParam('amount', 'The amount of native token to deposit, in ETH')
   .setAction(async ({ amount }, hre) => {
     // Make sure everything is compiled
     await hre.run('compile')
@@ -128,18 +109,21 @@ task('deposit', 'Deposit native tokens to get some KMC back')
       }, 60000)
     })
 
+    const [sender] = await hre.ethers.getSigners()
+    console.log('native balance: ', hre.ethers.utils.formatEther(await sender.getBalance()))
+    console.log('Before deposit,  main kmc balance: ', hre.ethers.utils.formatEther(await kmcToken.balanceOf(sender.address)))
+
     await mainContract.deposit({ value : hre.ethers.utils.parseEther(amount) })
+
+    console.log('After deposited, main kmc balance: ', hre.ethers.utils.formatEther(await kmcToken.balanceOf(sender.address)))
+    console.log('native balance: ', hre.ethers.utils.formatEther(await sender.getBalance()))
 
     let event = await depositEvent
     console.log('deposit... done!', event)
-
-    const [sender] = await hre.ethers.getSigners()
-    console.log('amount deposited, balance: ', hre.ethers.utils.formatEther(await kmcToken.balanceOf(sender.address)))
-    console.log('native balance: ', hre.ethers.utils.formatEther(await sender.getBalance()))
   })
 
 task('withdraw', 'Withdraw native tokens by transferring some KMC')
-  .addParam('amount', "The amount of native token to withdraw, in KMC")
+  .addParam('amount', 'The amount of native token to withdraw, in KMC')
   .setAction(async ({ amount }, hre) => {
     // Make sure everything is compiled
     await hre.run('compile')
@@ -150,18 +134,20 @@ task('withdraw', 'Withdraw native tokens by transferring some KMC')
     }
 
     const [sender] = await hre.ethers.getSigners()
+    console.log('native balance: ', hre.ethers.utils.formatEther(await sender.getBalance()))
+    console.log('Before withdrawn, kmc balance: ', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
 
     const kmcAmount = hre.ethers.utils.parseEther(amount)
     await kmcToken.approve(mainContract.address, kmcAmount)
     await mainContract.withdraw(kmcAmount)
 
-    console.log('amount withdrawn, balance: ', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
-    console.log('native balance: ', hre.ethers.utils.formatEther(await sender.getBalance()))
+    console.log('After withdrawn,  kmc balance: ', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
+    console.log('native balance:  ', hre.ethers.utils.formatEther(await sender.getBalance()))
   })
 
 
 task('admin-withdraw', 'Administrator withdraw native tokens from Main contract')
-  .addParam('amount', "The amount of native tokens to withdraw")
+  .addParam('amount', 'The amount of native tokens to withdraw')
   .setAction(async ({ amount }, hre) => {
     // Make sure everything is compiled
     await hre.run('compile')
@@ -196,7 +182,7 @@ task('admin-withdraw', 'Administrator withdraw native tokens from Main contract'
 
 
 task('set-article-deposit', 'Administrator set value of article create deposit')
-  .addParam('amount', "The amount of native tokens to set")
+  .addParam('amount', 'The amount of native tokens to set')
   .setAction(async ({ amount }, hre) => {
     // Make sure everything is compiled
     await hre.run('compile')
@@ -223,7 +209,7 @@ task('set-article-deposit', 'Administrator set value of article create deposit')
   })
 
 task('set-mint-deposit', 'Administrator set value of article mint deposit')
-  .addParam('amount', "The amount of native tokens to set")
+  .addParam('amount', 'The amount of native tokens to set')
   .setAction(async ({ amount }, hre) => {
     // Make sure everything is compiled
     await hre.run('compile')
@@ -257,9 +243,12 @@ task('debug', 'Shows debug info')
       return
     }
 
-    const count = await mainContract.getArticleCount()
-
-    for (let i = 0; i < count; i++) {
+    let count = Number(await mainContract.getArticleCount())
+    let start = count > 5 ? count - 5 : 0
+    console.log('\n-------------------------------------------------------------')
+    console.log('Print last 5; Article count[%d], from [%d] to [%d]', count, start, count - 1)
+    //print last 5
+    for (let i = start; i < count; i++) {
       const a = await mainContract.getArticle(i)
       console.log('article', i, a)
     }
@@ -267,34 +256,41 @@ task('debug', 'Shows debug info')
     const accounts = await hre.ethers.getSigners()
     const sender = accounts[0]
 
-    console.log('Accounts num:', accounts.length)
-    for (let i = 0; i < accounts.length; i++) {
+    count = accounts.length > 3 ? 3 : accounts.length
+    console.log('\n-------------------------------------------------------------')
+    console.log('Print first 3; Accounts count:', accounts.length)
+    //print first 3 account if enough
+    for (let i = 0; i < count; i++) {
       console.log('accounts[%d].addr=[%s]', i, accounts[i].address)
     }
 
-    console.log("Kmc address:", kmcToken.address)
-    console.log("Kmc supply:", hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
-
-    console.log("articleDeposit:", hre.ethers.utils.formatEther(await mainContract.articleDeposit()))
-    console.log("mintDeposit   :", hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
+    console.log('\n-------------------------------------------------------------')
+    console.log('ArticleDeposit   :', hre.ethers.utils.formatEther(await mainContract.articleDeposit()))
+    console.log('MintDeposit      :', hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
+    console.log('Kmc total supply :', hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
 
     const k0 = await sender.getBalance()
-    console.log('native balance of sender', hre.ethers.utils.formatEther(k0))
-
     const k1 = await sender.provider.getBalance(mainContract.address)
-    console.log('native balance of mainContract', hre.ethers.utils.formatEther(k1))
+    console.log('\n-------------------------------------------------------------')
+    console.log('Admin native balance :', hre.ethers.utils.formatEther(k0))
+    console.log('Main  native balance :', hre.ethers.utils.formatEther(k1))
 
-    console.log('balance0 1155', (await token1155.balanceOf(sender.address, 1)).toString())
+    console.log('\n-------------------------------------------------------------')
+    console.log('Admin KMC balance  :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
+    console.log('Main  KMC balance  :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
+    console.log('admin 1155 balance :', (await token1155.balanceOf(sender.address, 1)).toString())
 
-
-    console.log('KMC balance0', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
-    console.log('KMC balance of mainContract', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
-    // console.log('balance of Guild', hre.ethers.utils.formatEther((await kmcToken.balanceOf(guildAddress))))
+    console.log('\n-------------------------------------------------------------')
+    console.log('Kmc  address :', kmcToken.address)
+    console.log('1155 address :', token1155.address)
+    console.log('Main address :', mainContract.address)
+    console.log('-------------------------------------------------------------')
+    console.log('')
   })
 
 
 
-const version = "1"
+const version = '1'
 
 task('permit-approve', 'Permits someone to execute the KMC Approve operation instead by verifying signature')
   .addParam('amount', 'The amount of KMC will be approved to spender')
@@ -305,7 +301,7 @@ task('permit-approve', 'Permits someone to execute the KMC Approve operation ins
     const { mainContract, kmcToken } = await getDeployedContracts(hre)
     expect( kmcToken !== undefined )
 
-    const name = await kmcToken.name() //"Kmc Token"
+    const name = await kmcToken.name() //'Kmc Token'
     console.log('token name:', name)
 
     const accounts = await hre.ethers.getSigners()
@@ -332,7 +328,7 @@ task('permit-approve', 'Permits someone to execute the KMC Approve operation ins
 
     const domain = buildDomain(name, version, chainId, kmcToken.address)
     const types = {
-      Permit: [ //"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+      Permit: [ //'Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)'
         {name: 'owner', type: 'address'},
         {name: 'spender', type: 'address'},
         {name: 'value', type: 'uint256'},
@@ -454,7 +450,7 @@ task('permit-create-article', 'Permits someone to execute new article creation o
     const newArticleContractId = await mainContract.getArticleCount()
     console.log('newArticleContractId:', newArticleContractId)
     await expect(mainContract.connect(caller).permitCreateArticle(contentHash, owner.address, v, r, s))
-      .to.emit(mainContract, "ArticleCreated")
+      .to.emit(mainContract, 'ArticleCreated')
       .withArgs(owner.address, newArticleContractId, anyValue)
 
 
@@ -549,7 +545,7 @@ task('permit-mint', 'Permits someone to execute article mint operation instead b
 
     //test method and Event with argument
     await expect(mainContract.connect(caller).permitMint(articleId, Amount, owner.address, v, r, s))
-      .to.emit(mainContract, "ArticleMinted")
+      .to.emit(mainContract, 'ArticleMinted')
       .withArgs(owner.address, articleId, Amount)
 
 

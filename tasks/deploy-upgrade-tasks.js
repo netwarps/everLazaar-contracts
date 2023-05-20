@@ -1,6 +1,6 @@
-const {expect} = require("chai")
-const {task} = require("hardhat/config")
-const Confirm = require("prompt-confirm")
+const {expect} = require('chai')
+const {task} = require('hardhat/config')
+const Confirm = require('prompt-confirm')
 const {
   deployAllByProxy,
   getDeployedContracts,
@@ -10,7 +10,7 @@ const {
   setDeployedMainContractName,
   setDeployedToken20Name,
   setDeployedToken1155Name
-} = require("../scripts/utils")
+} = require('../scripts/utils')
 
 
 
@@ -48,14 +48,14 @@ async function upgradeContract(hre, newContractName) {
   }
 
   const lowNewName = newContractName.toLowerCase()
-
-  if (lowNewName.indexOf(oldToken20ContractName) >= 0) {
+  console.log('lowerNewName:%s, index:%d', lowNewName, lowNewName.indexOf(oldToken20ContractName.toLowerCase()))
+  if (lowNewName.indexOf(oldToken20ContractName.toLowerCase()) >= 0) {
     prevContractProxyAddr = kmcToken.address
     console.log('will upgrade [%s]', oldToken20ContractName)
-  } else if (lowNewName.indexOf(oldToken1155ContractName) >= 0) {
+  } else if (lowNewName.indexOf(oldToken1155ContractName.toLowerCase()) >= 0) {
     console.log('will upgrade [%s]', oldToken1155ContractName)
     prevContractProxyAddr = token1155.address
-  } else if (lowNewName.indexOf(oldMainContractName) >= 0) {
+  } else if (lowNewName.indexOf(oldMainContractName.toLowerCase()) >= 0) {
     prevContractProxyAddr = mainContract.address
     console.log('will upgrade [%s]', oldMainContractName)
   } else {
@@ -67,8 +67,8 @@ async function upgradeContract(hre, newContractName) {
 
   const [admin] = await hre.ethers.getSigners()
 
-  console.log("Upgrading contracts with the account:", admin.address)
-  console.log("Deployer native token balance:", (await admin.getBalance()).toString())
+  console.log('Upgrading contracts with the account:', admin.address)
+  console.log('Deployer native token balance:', (await admin.getBalance()).toString())
 
   const NewFactory = await hre.ethers.getContractFactory(newContractName)
   const newContractProxy = await hre.upgrades.upgradeProxy(prevContractProxyAddr, NewFactory)
@@ -83,16 +83,20 @@ async function upgradeContract(hre, newContractName) {
 }
 
 /**
- * This task using proxy to deploy Main contract, Token20, Token1155 contracts to test or formal network for the first time.
+ * This task using proxy to deploy Main contract, KmcToken, Token1155 contracts  network for the first time.
  */
-task("deploy-all-proxy", 'Deploys new instance of Main contract,Token20,Token1155 to network by Proxy')
+task('deploy-all-proxy', 'Deploys new instance of Main contract,Token20,Token1155 to network by Proxy')
   .setAction(async (_, hre) => {
-
-    console.log('Deploying all contracts to network[%s] by Proxy', hre.network.name)
+    console.log('')
+    console.log('----------------------------------------------------------------------------')
+    console.log('Deploying all contracts to network --- [%s] by Proxy, sure?', hre.network.name)
+    console.log('----------------------------------------------------------------------------')
     console.log('Only used for deploying FIRST TIME !!! If you want to upgrade the contract, please choose upgrade task.')
+    console.log('')
 
-    const prompt = new Confirm('Continue to deploy ?')
-    const confirmation = await prompt.run()
+    const info = 'Please confirm to deploy to network [ ' + hre.network.name + ' ] ??'
+    let prompt = new Confirm(info)
+    let confirmation = await prompt.run()
 
     if (!confirmation) {
       console.log('You aborted the procedure !!')
@@ -101,33 +105,48 @@ task("deploy-all-proxy", 'Deploys new instance of Main contract,Token20,Token115
 
     const [admin] = await hre.ethers.getSigners()
 
-    console.log("Deploying contracts with the account:", admin.address)
-    console.log("Deployer native token balance:", (await admin.getBalance()).toString())
+    console.log('Deploying contracts with the account:', admin.address)
+    console.log('Deployer native token balance:', (await admin.getBalance()).toString())
 
     const {mainContract, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
 
-    await kmcToken.transfer(mainContract.address, await kmcToken.totalSupply())
+    const supply = await kmcToken.totalSupply()
+    console.log('total Supply:', supply)
+    console.log('')
+    console.log('---------------------------------------------------------------------')
+    //If we deploy contracts to online network(like main net or test net), keep all initSupply kmc in admin account, so input 'y'.
+    //If we deploy to localhost for task test, need to transfer some kmc to mainContract.addr for withdraw task, so input 'n'.
+    prompt = new Confirm('Keep initSupply Kmc in admin ? (for local test, choose \'n\', for test or main net, choose \'y\')')
+    confirmation = await prompt.run()
+    if (!confirmation) {
+      console.log('Start to transfer half of kmc to mainContract from admin ..')
+      await kmcToken.transfer(mainContract.address, supply.div(2))
+      console.log('Kmc to admin transferred ')
+    }
 
     const mainContractName = getDeployedMainContractName()
     console.log('')
-    console.log('[%s] deployed. Address:', mainContractName, mainContract.address)
+    console.log('[%s] deployed. Addr:', mainContractName, mainContract.address)
     console.log('KMC in [%s]:', mainContractName, hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
-    console.log('Deployed [%s], Token20, Token1155 to network[%s], chainId[%d] succeed ...', mainContractName, hre.network.name, chainId)
+    console.log('KMC in [admin]:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(admin.address)))
+    console.log('Deployed [%s], [%s], [%s] to network[%s], chainId[%d] succeed ...',
+      mainContractName, getDeployedToken20Name(), getDeployedToken1155Name(), hre.network.name, chainId)
+    console.log('')
     console.log('--------------------------------------------------------------------------------')
-    console.log("Set this address in hardhat.config.js's networks section to use the other tasks !!!")
-    console.log('--------------------------------------------------------------------------------')
+    console.log('Set this address in hardhat.config.js\'s networks section to use the other tasks !!!')
+    console.log('--------------------------------------------------------------------------------\n')
 
   })
 
 /**
  * This task is used to deploy Main,Token20,Token1155 contracts to test or formal network for the first time.
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'Token20V2'
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'Token1155V2'
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name 'MainV2'
+ * eg: npx hardhat upgrade-contract --network localhost --new-contract-name KmcToken
+ * eg: npx hardhat upgrade-contract --network localhost --new-contract-name ElzToken1155
+ * eg: npx hardhat upgrade-contract --network localhost --new-contract-name Everlazaar
  */
-task("upgrade-contract", 'Upgrades a specified contract to network')
+task('upgrade-contract', 'Upgrades a specified contract to network')
   .addParam('newContractName', 'The name of the new contract ' +
-    '\neg: npx hardhat upgrade-contract --network localhost --newContractName \'Token20\'')
+    '\neg: npx hardhat upgrade-contract --network localhost --new-contract-name Token20')
   .setAction(async ({newContractName}, hre) => {
     console.log('Upgrading contract[%s] to network [%s]', newContractName, hre.network.name)
 
@@ -138,8 +157,8 @@ task("upgrade-contract", 'Upgrades a specified contract to network')
     console.log('\nUpgrading contract succeed !!\n')
   })
 
-//eg: npx hardhat upgrade-test --network localhost --new-contract-name Token20
-task("upgrade-test", 'Tests the contract after upgrading a specified contract to network')
+//eg: npx hardhat upgrade-test --network localhost --cur-main-contract-name Everlazaar --cur-token20-name KmcToken --cur-token1155-name ElzToken1155
+task('upgrade-test', 'Tests the contract after upgrading a specified contract to network')
   .addParam('curMainContractName', 'The name of the current main contract ')
   .addParam('curToken20Name', 'The name of the current Token20 contract ')
   .addParam('curToken1155Name', 'The name of the current Token1155 contract ')

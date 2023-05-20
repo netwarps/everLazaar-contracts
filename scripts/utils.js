@@ -161,6 +161,8 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   const supply = hre.ethers.utils.parseEther(deploymentParams.INITIAL_KMC_SUPLY)
 
+  console.log('')
+  console.log('-------------------------------------------------------------')
   if (needConfirm === true) {
     const prompt = new Confirm('Please confirm that the deployment parameters are correct')
     const confirmation = await prompt.run()
@@ -171,6 +173,7 @@ const deployAllByProxy = async (needConfirm, hre) => {
     }
   }
 
+  console.log('')
   //KmcToken
   console.log('Start to deploy [%s]:', deployedToken20ContractName)
   const kmcFactory = await hre.ethers.getContractFactory(deployedToken20ContractName)
@@ -213,8 +216,10 @@ const deployAllByProxy = async (needConfirm, hre) => {
   console.log('account0:' + accounts[0].address)
   //console.log('account1:' + accounts[1].address)
 
-  console.log('balance:', await kmcToken.balanceOf(accounts[0].address))
+  console.log('account0 kmc balance:', await kmcToken.balanceOf(accounts[0].address))
   expect(await kmcToken.balanceOf(accounts[0].address)).to.equals(supply)
+
+  console.log('account0 native balance:', hre.ethers.utils.formatEther(await accounts[0].getBalance()))
 
   //transfer token1155's ownership, from deployer to main contract
   await token1155.transferOwnership(mainContract.address)
