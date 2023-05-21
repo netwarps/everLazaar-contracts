@@ -16,18 +16,16 @@ async function main() {
     return
   }
 
-  const [admin] = await hre.ethers.getSigners()
+  const [deployer] = await hre.ethers.getSigners()
 
-  console.log("Deploying contracts with the account:", admin.address)
-  console.log("Deployer native token balance:", (await admin.getBalance()).toString())
+  console.log("Deploying contracts with the account:", deployer.address)
+  console.log("Deployer native token balance:", (await deployer.getBalance()).toString())
 
-  const {everlazaar, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
-
-  //await kmcToken.transfer(everlazaar.address, await kmcToken.totalSupply())
+  const {mainContract, kmcToken, accounts, chainId} = await deployAllByProxy(true, hre)
 
   console.log('')
-  console.log('Main contract deployed. Address:', everlazaar.address)
-  console.log('Kmc balance of main contract:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(everlazaar.address)))
+  console.log('Main contract deployed. Address:', mainContract.address)
+  console.log('Kmc balance of main contract:', hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
   console.log('Deployed Everlazaar, Kmc, ElzToken1155 to network[%s], chainId[%d] succeed !!!', hre.network.name, chainId)
 
 }

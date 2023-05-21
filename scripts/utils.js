@@ -173,10 +173,18 @@ const deployAllByProxy = async (needConfirm, hre) => {
     }
   }
 
+  const accounts = await  hre.ethers.getSigners()
+  const deployer = accounts[0] //specify the deployer, which is the contract owner
+  console.log('account0 addr :' + accounts[0].address)
+  if (accounts.length > 1) {
+    console.log('account1 addr :' + accounts[1].address)
+  }
+  console.log('deployer addr :', deployer.address)
+
   console.log('')
   //KmcToken
   console.log('Start to deploy [%s]:', deployedToken20ContractName)
-  const kmcFactory = await hre.ethers.getContractFactory(deployedToken20ContractName)
+  const kmcFactory = await hre.ethers.getContractFactory(deployedToken20ContractName, deployer) //specify the deployer, which is the contract owner
   const kmcToken = await hre.upgrades.deployProxy(kmcFactory, [supply], {initializer: 'initialize'})
   await kmcToken.deployed()
 
@@ -187,7 +195,7 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   //Token1155
   console.log('Start to deploy [%s]:', deployedToken1155ContractName)
-  const Token1155 = await hre.ethers.getContractFactory(deployedToken1155ContractName)
+  const Token1155 = await hre.ethers.getContractFactory(deployedToken1155ContractName, deployer)
   const token1155 = await hre.upgrades.deployProxy(Token1155, [''])
   await token1155.deployed()
 
@@ -196,7 +204,7 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   //Main contract
   console.log('Start to deploy [%s]:', deployedMainContractName)
-  const mainFactory = await  hre.ethers.getContractFactory(deployedMainContractName)
+  const mainFactory = await  hre.ethers.getContractFactory(deployedMainContractName, deployer)//specify the deployer, which is the contract owner
   const mainContract = await  hre.upgrades.deployProxy(mainFactory, [
     kmcToken.address,
     token1155.address,
@@ -210,16 +218,12 @@ const deployAllByProxy = async (needConfirm, hre) => {
   console.log('KMC in [%s]:', deployedMainContractName, hre.ethers.utils.formatEther(await kmcToken.balanceOf(mainContract.address)))
   console.log('')
 
-  const accounts = await  hre.ethers.getSigners()
-  const chainId = await mainContract.signer.getChainId()
+  console.log('deployer kmc balance:', await kmcToken.balanceOf(deployer.address))
+  expect(await kmcToken.balanceOf(deployer.address)).to.equals(supply)
 
-  console.log('account0:' + accounts[0].address)
-  //console.log('account1:' + accounts[1].address)
+  console.log('deployer native balance:', hre.ethers.utils.formatEther(await deployer.getBalance()))
 
-  console.log('account0 kmc balance:', await kmcToken.balanceOf(accounts[0].address))
-  expect(await kmcToken.balanceOf(accounts[0].address)).to.equals(supply)
-
-  console.log('account0 native balance:', hre.ethers.utils.formatEther(await accounts[0].getBalance()))
+  const chainId = await deployer.getChainId()
 
   //transfer token1155's ownership, from deployer to main contract
   await token1155.transferOwnership(mainContract.address)

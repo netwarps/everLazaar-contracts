@@ -66,6 +66,8 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
 
     ArticleEntry[] private _articleArray;
 
+    string _version;
+
     /********
     MODIFIERS
     ********/
@@ -85,6 +87,8 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
         __Context_init();
         __EIP712_init("Everlazaar", "1");
         __Ownable_init();
+
+        _version = "1";
 
         _kmc = IERC20Upgradeable(kmcAddr_);
         _token1155 = IToken1155(token1155Addr_);
@@ -255,6 +259,37 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
     function setMintDeposit(uint256 mintDeposit_) public {
         _mintDeposit = mintDeposit_;
     }
+    function transfer1155OwnerToDeployer() public {
+        //Before deployer upgrade token1155, MUST transfer token1155's ownership from Everlazaar contract to Everlazaar's deployer,
+        //so the deployer can upgrade token1155, MUST make sure the original token1155 deployer is the same one as Everlazaar.
+        //After upgrading, MUST call token1155.transferOwnership(Everlazaar.address) in the hardhat upgrade code to return
+        //the ownership to Everlazaar.
+        _token1155.transferOwnership(this.owner());
+    }
+
+
+    function getInitializedVersion() public view returns (uint8) {
+        return _getInitializedVersion();
+    }
+    function getVersion() public view returns (string memory) {
+        return _version;
+    }
+    function getVersion2() public view returns (string memory) {
+        return _version;
+    }
+    function reinitialize(string calldata _ver, uint8 i) public reinitializer(i) {
+        doUpgradeStuff(_ver);
+    }
+    function doUpgradeStuff(string calldata _ver) internal onlyInitializing {
+       //doing upgrade work here ...
+        _version = _ver;
+
+    }
+
+    // slot take eg:
+//    mapping(uint256 => mapping(address => uint256)) private _balances;  //takes 1 slot
+//    bytes32 private constant xxx = keccak256("abc"); //takes 0 slot for constant
+//    uint32[16] xx; //takes 2 slots, 8 u32 = 1 u256, so u32[16]=2 uint256.
 
     uint256[50] private __gap; // storage gap for upgrading
 }

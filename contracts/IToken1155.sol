@@ -15,4 +15,6 @@ interface IToken1155 is IERC1155Upgradeable, IERC1155MetadataURIUpgradeable {
 
   function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) external;
 
+  function transferOwnership(address newOwner) external;
+
 }

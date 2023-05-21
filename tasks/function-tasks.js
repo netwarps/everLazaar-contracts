@@ -235,6 +235,22 @@ task('set-mint-deposit', 'Administrator set value of article mint deposit')
 
   })
 
+task('tt', 'Shows test')
+  .setAction(async (_, hre) => {
+    const accounts = await hre.ethers.getSigners()
+    const a0 = accounts[0]
+    const a1 = accounts[1]
+
+    console.log('a0.addr:', a0.address)
+    console.log('a1.addr:', a1.address)
+
+    const { mainContract, kmcToken, token1155 } = await getDeployedContracts(hre)
+    if (mainContract === undefined || kmcToken === undefined || token1155 === undefined) {
+      return
+    }
+
+  })
+
 task('debug', 'Shows debug info')
   .setAction(async (_, hre) => {
 
@@ -280,6 +296,15 @@ task('debug', 'Shows debug info')
     console.log('Main  KMC balance  :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
     console.log('admin 1155 balance :', (await token1155.balanceOf(sender.address, 1)).toString())
 
+    console.log('\n-------------------------------------------------------------')
+    console.log('Main Initialized version  :', await mainContract.getInitializedVersion())
+    console.log('Main contract    version  :', await mainContract.getVersion())
+    console.log('Kmc Initialized  version  :', await kmcToken.getInitializedVersion())
+    console.log('Kmc  contract    version  :', await kmcToken.getVersion())
+    console.log('1155 Initialized version  :', await token1155.getInitializedVersion())
+    console.log('1155 contract    version  :', await token1155.getVersion())
+
+    console.log('\n1155 owner addr :', await token1155.owner())
     console.log('\n-------------------------------------------------------------')
     console.log('Kmc  address :', kmcToken.address)
     console.log('1155 address :', token1155.address)
