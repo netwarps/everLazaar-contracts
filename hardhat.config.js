@@ -84,7 +84,7 @@ module.exports = {
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
-          mainContract: '0x27a4aDb7f58D57c3769B158cb967D24C7b54D65a'
+          mainContract: '0x80D8151D3FBe2D82D2657d389A7247AB1d3815C9'
         }
     }
   }

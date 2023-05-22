@@ -192,14 +192,14 @@ task('set-article-deposit', 'Administrator set value of article create deposit')
       return
     }
 
-    const [admin] = await hre.ethers.getSigners()
+    const [a0, a1] = await hre.ethers.getSigners()
 
     const deposit = hre.ethers.utils.parseEther(amount)
     console.log('set deposit: ', deposit)
     const oldDeposit = await mainContract.articleDeposit()
     console.log('oldDeposit: ', oldDeposit)
 
-    await mainContract.setArticleDeposit(deposit)
+    await mainContract.connect(a0).setArticleDeposit(deposit)
 
     const newDeposit = await mainContract.articleDeposit()
     console.log('newDeposit: ', newDeposit)
@@ -270,7 +270,7 @@ task('debug', 'Shows debug info')
     }
 
     const accounts = await hre.ethers.getSigners()
-    const sender = accounts[0]
+    const deployer = accounts[0]
 
     count = accounts.length > 3 ? 3 : accounts.length
     console.log('\n-------------------------------------------------------------')
@@ -285,16 +285,16 @@ task('debug', 'Shows debug info')
     console.log('MintDeposit      :', hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
     console.log('Kmc total supply :', hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
 
-    const k0 = await sender.getBalance()
-    const k1 = await sender.provider.getBalance(mainContract.address)
+    const k0 = await deployer.getBalance()
+    const k1 = await deployer.provider.getBalance(mainContract.address)
     console.log('\n-------------------------------------------------------------')
-    console.log('Admin native balance :', hre.ethers.utils.formatEther(k0))
-    console.log('Main  native balance :', hre.ethers.utils.formatEther(k1))
+    console.log('Deployer native balance :', hre.ethers.utils.formatEther(k0))
+    console.log('Main     native balance :', hre.ethers.utils.formatEther(k1))
 
     console.log('\n-------------------------------------------------------------')
-    console.log('Admin KMC balance  :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(sender.address))))
-    console.log('Main  KMC balance  :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
-    console.log('admin 1155 balance :', (await token1155.balanceOf(sender.address, 1)).toString())
+    console.log('Deployer KMC  balance :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(deployer.address))))
+    console.log('Main     KMC  balance :', hre.ethers.utils.formatEther((await kmcToken.balanceOf(mainContract.address))))
+    console.log('Deployer 1155 balance :', (await token1155.balanceOf(deployer.address, 1)).toString())
 
     console.log('\n-------------------------------------------------------------')
     console.log('Main Initialized version  :', await mainContract.getInitializedVersion())
@@ -306,9 +306,9 @@ task('debug', 'Shows debug info')
 
     console.log('\n1155 owner addr :', await token1155.owner())
     console.log('\n-------------------------------------------------------------')
+    console.log('Main address :', mainContract.address)
     console.log('Kmc  address :', kmcToken.address)
     console.log('1155 address :', token1155.address)
-    console.log('Main address :', mainContract.address)
     console.log('-------------------------------------------------------------')
     console.log('')
   })

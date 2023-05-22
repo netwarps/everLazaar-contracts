@@ -253,10 +253,10 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
         payable(msg.sender).transfer(amount);
     }
 
-    function setArticleDeposit(uint256 articleDeposit_) public {
+    function setArticleDeposit(uint256 articleDeposit_) public onlyOwner {
         _articleDeposit = articleDeposit_;
     }
-    function setMintDeposit(uint256 mintDeposit_) public {
+    function setMintDeposit(uint256 mintDeposit_) public onlyOwner {
         _mintDeposit = mintDeposit_;
     }
     function transfer1155OwnerToDeployer() public {

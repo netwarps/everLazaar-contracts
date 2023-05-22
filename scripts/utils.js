@@ -175,9 +175,9 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   const accounts = await  hre.ethers.getSigners()
   const deployer = accounts[0] //specify the deployer, which is the contract owner
-  console.log('account0 addr :' + accounts[0].address)
+  console.log('account0 addr :', accounts[0].address)
   if (accounts.length > 1) {
-    console.log('account1 addr :' + accounts[1].address)
+    console.log('account1 addr :', accounts[1].address)
   }
   console.log('deployer addr :', deployer.address)
 
@@ -227,8 +227,17 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   //transfer token1155's ownership, from deployer to main contract
   await token1155.transferOwnership(mainContract.address)
-  expect(await token1155.owner()).to.be.eq(mainContract.address)
-  console.log('Transfer token1155 ownership to [%s] contract succeed', deployedMainContractName)
+  console.log('Transfer token1155 ownership to [%s], wait for result', deployedMainContractName)
+  for (let i = 0; i < 15; i++) {
+    let ow = await token1155.owner()
+    console.log('get 1155 owner addr:', ow);
+    if (await ow === mainContract.address) {
+      console.log('1155 owner addr === mainContract.addr')
+      break
+    }
+    setTimeout(() => {
+    }, 3000);
+  }
 
   return { mainContract, kmcToken, token1155, accounts, chainId }
 
