@@ -10,9 +10,9 @@ Everlazaar is described by one smart contract:
 
 `Everlazaar.sol` - Responsible for managing creation publishing & NFT minting.
 
-Everlazaar is using an external ERC20 token, we called KMC, as the native token of Everlazaar.
+Everlazaar is using an external ERC20 based token, we called KMC, as the native token of Everlazaar.
 
-Everlazaar is using ERC1155 to mint item NFT.
+Everlazaar is using ERC1155 based contract to mint creation NFT.
 
 ## Installation
 
