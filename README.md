@@ -12,7 +12,7 @@ Everlazaar is described by one smart contract:
 
 Everlazaar is using an external ERC20 based token, we called KMC, as the native token of Everlazaar.
 
-Everlazaar is using ERC1155 based contract to mint creation NFT.
+Everlazaar is using a ERC1155 based contract to mint creation NFT.
 
 ## Installation
 
