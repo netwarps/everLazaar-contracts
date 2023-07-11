@@ -17,11 +17,11 @@ if ((!ACCOUNT_PRIVATE_KEY || !NODE_API_KEY)) {
   process.exit(0);
 }
 
-const polygonMainetNodeUrl = isInfura
+const polygonMainNetNodeUrl = isInfura
   ? "https://polygon-mainnet.infura.io/v3/" + NODE_API_KEY
   : "https://polygon-mainnet.g.alchemy.com/v2/" + NODE_API_KEY;
 
-const polygonNumbaiNodeUrl = isInfura
+const polygonMumbaiNodeUrl = isInfura
   ? "https://polygon-mumbai.infura.io/v3/" + NODE_API_KEY
   : "https://polygon-mumbai.g.alchemy.com/v2/" + NODE_API_KEY;
 
@@ -76,11 +76,11 @@ module.exports = {
     //   }
     // },
     matic: {
-      url: polygonMainetNodeUrl,
+      url: polygonMainNetNodeUrl,
       accounts: [`0x${ACCOUNT_PRIVATE_KEY}`]
     },
     maticmum: {
-        url: polygonNumbaiNodeUrl,
+        url: polygonMumbaiNodeUrl,
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
