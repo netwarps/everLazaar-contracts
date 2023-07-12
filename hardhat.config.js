@@ -77,14 +77,17 @@ module.exports = {
     // },
     matic: {
       url: polygonMainNetNodeUrl,
-      accounts: [`0x${ACCOUNT_PRIVATE_KEY}`]
+      accounts: [`0x${ACCOUNT_PRIVATE_KEY}`],
+      deployedContracts:{
+        mainContract: '0x xxx'
+      }
     },
     maticmum: {
         url: polygonMumbaiNodeUrl,
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
-          mainContract: '0x80D8151D3FBe2D82D2657d389A7247AB1d3815C9'
+          mainContract: '0x5B89Fae308e78CB67B79623F0854A0B53107D1C4'
         }
     }
   }
