@@ -259,8 +259,14 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
     function setMintDeposit(uint256 mintDeposit_) public onlyOwner {
         _mintDeposit = mintDeposit_;
     }
+
+    //Change base URI of ElzToken1155
+    function setToken1155BaseUri(string memory newUri_) public onlyOwner {
+        _token1155.setURI(newUri_);
+    }
+
     function transfer1155OwnerToDeployer() public {
-        //Before deployer upgrade token1155, MUST transfer token1155's ownership from Everlazaar contract to Everlazaar's deployer,
+        //Important!! Before deployer upgrade token1155, MUST transfer token1155's ownership from Everlazaar contract to Everlazaar's deployer,
         //so the deployer can upgrade token1155, MUST make sure the original token1155 deployer is the same one as Everlazaar.
         //After upgrading, MUST call token1155.transferOwnership(Everlazaar.address) in the hardhat upgrade code to return
         //the ownership to Everlazaar.
@@ -274,9 +280,7 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
     function getVersion() public view returns (string memory) {
         return _version;
     }
-    function getVersion2() public view returns (string memory) {
-        return _version;
-    }
+
     function reinitialize(string calldata _ver, uint8 i) public reinitializer(i) {
         doUpgradeStuff(_ver);
     }

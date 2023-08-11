@@ -1,6 +1,15 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
-require('dotenv').config();
+require('@nomiclabs/hardhat-ethers')
+require('@nomiclabs/hardhat-etherscan')
+
+
+// require('dotenv').config();
+require('dotenv').config({path: '.env.test.pdm'});
+// require('dotenv').config({path: '.env.test.ucl'});
+// require('dotenv').config({path: '.env.prod'});
+
+const { POLYGON_MUMBAI_RPC_PROVIDER, POLYGONSCAN_API_KEY } = process.env;
 
 require("./tasks/deploy-upgrade-tasks");
 require("./tasks/function-tasks");
@@ -58,6 +67,11 @@ module.exports = {
       }
     }
   },
+
+  etherscan: {
+    apiKey: POLYGONSCAN_API_KEY
+  },
+
   networks: {
     localhost: {
       deployedContracts: {
@@ -75,20 +89,28 @@ module.exports = {
     //     mainContract: '0xdf6B79624a2fc9C84ca7029e677ab482cF4BE2A0',
     //   }
     // },
-    matic: {
+    matic: { //main net
       url: polygonMainNetNodeUrl,
       accounts: [`0x${ACCOUNT_PRIVATE_KEY}`],
       deployedContracts:{
         mainContract: '0x xxx'
       }
     },
-    maticmum: {
+    maticmum_pdm: { //HK paradeum test
         url: polygonMumbaiNodeUrl,
         gasLimit:46000000,
         accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
         deployedContracts:{
-          mainContract: '0x5B89Fae308e78CB67B79623F0854A0B53107D1C4'
+          mainContract: '0x80D8151D3FBe2D82D2657d389A7247AB1d3815C9'
         }
+    },
+    maticmum_ucl: { //HK ucloud test
+      url: polygonMumbaiNodeUrl,
+      gasLimit:46000000,
+      accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
+      deployedContracts:{
+        mainContract: '0x5B89Fae308e78CB67B79623F0854A0B53107D1C4'
+      }
     }
   }
 };

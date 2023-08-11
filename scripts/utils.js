@@ -243,6 +243,22 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
 }
 
+//function justWait (sec) {
+const justWait = async (sec) => {
+  console.log('start to wait for [%d] seconds ...', sec)
+
+  let w = new Promise((resolve, reject) => {
+
+    setTimeout(() => {
+      resolve('waiting for [' + sec + '] seconds end ...')
+    }, sec * 1000)
+  })
+
+  let res = await w
+  console.log('end justWait, ', res)
+}
+
+
 module.exports = {
   deployAllByProxy,
   getDeployedContracts,
@@ -258,4 +274,5 @@ module.exports = {
   setDeployedMainContractName,
   setDeployedToken20Name,
   setDeployedToken1155Name,
+  justWait,
 }

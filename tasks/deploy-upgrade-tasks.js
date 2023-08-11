@@ -7,9 +7,7 @@ const {
   getDeployedMainContractName,
   getDeployedToken20Name,
   getDeployedToken1155Name,
-  setDeployedMainContractName,
-  setDeployedToken20Name,
-  setDeployedToken1155Name
+  justWait,
 } = require('../scripts/utils')
 const {UpgradeProxyOptions} = require("@openzeppelin/hardhat-upgrades/dist/utils");
 
@@ -70,20 +68,41 @@ async function upgradeContract(hre, newContractName, newVersion) {
   console.log('Is token1155 ?          ', isToken1155)
   console.log('')
 
+  let prompt = new Confirm('Please confirm above info are exactly correct ?')
+  let confirmation = await prompt.run()
+  if (!confirmation) {
+    console.log('You aborted the procedure !!')
+    return false
+  }
+
+  const interval = 5 //seconds
   if (isToken1155) {
     let owner1155 = await token1155.owner()
     console.log('Old 1155Owner :', owner1155)
     console.log('main contract :', mainContract.address)
+    console.log('Old 1155Owner === mainContract  :', owner1155 === mainContract.address)
+    console.log('Old 1155Owner === deployer.addr :', owner1155 === deployer.address)
 
     let mainOwner = await mainContract.owner()
     console.log('main owner    :', mainOwner)
     console.log('the deployer  :', deployer.address)
+    console.log('main owner === deployer.addr :', mainOwner === deployer.address)
     expect(mainOwner).to.equal(deployer.address)
 
     if (owner1155 === mainContract.address) {
-      await mainContract.transfer1155OwnerToDeployer()
+      console.log('start to transfer 1155 owner to deployer ...')
+      await mainContract.transfer1155OwnerToDeployer() //Set 1155's owner back to the deployer
+      console.log('wait for transfer 1155 owner to deployer ...')
+      for ( let i = 0; i < 20; i++) {
+        await justWait(interval)
+        owner1155 = await token1155.owner()
+        let transSucceed = owner1155 === deployer.address
+        console.log('%ds: Old 1155Owner === deployer.addr :%s', (i+1)*interval, transSucceed)
+        if (transSucceed)
+          break
+      }
     }
-    owner1155 = await token1155.owner()
+
     console.log('new 1155Owner :', owner1155)
     expect(mainOwner).to.equal(owner1155)
 
@@ -98,14 +117,6 @@ async function upgradeContract(hre, newContractName, newVersion) {
   console.log('prevContractProxy :', prevContractProxyAddr)
   console.log('')
 
-  const prompt = new Confirm('Please confirm above info are exactly correct ?')
-  const confirmation = await prompt.run()
-
-  if (!confirmation) {
-    console.log('You aborted the procedure !!')
-    return false
-  }
-
   const NewFactory = await hre.ethers.getContractFactory(newContractName, deployer) //specify the deployer, which is the contract owner
   //UpgradeProxyOptions = UpgradeOptions & { call?: { fn: string; args?: unknown[] } | string; };
   let opts = { call: { fn: 'reinitialize', args: [newVersion, nextInitializedVersion] } }
@@ -114,7 +125,18 @@ async function upgradeContract(hre, newContractName, newVersion) {
 
   if (isToken1155) {
     await token1155.transferOwnership(mainContract.address)
-    expect(await token1155.owner()).to.equal(mainContract.address)
+    console.log('wait for transfer 1155 owner to mainContract ...')
+    let owner1155
+    for ( let i = 0; i < 20; i++) {
+      await justWait(interval)
+      owner1155 = await token1155.owner()
+      let transSucceed = owner1155 === mainContract.address
+      console.log('%ds: Old 1155Owner === mainContract :%s', (i+1)*interval, transSucceed)
+      if (transSucceed)
+        break
+    }
+
+    expect(owner1155).to.equal(mainContract.address)
     console.log('Return 1155 ownership to mainContract')
   }
 
@@ -188,14 +210,14 @@ task('deploy-all-proxy', 'Deploys new instance of Main contract,Token20,Token115
 
 /**
  * This task is used to deploy Main,Token20,Token1155 contracts to test or formal network for the first time.
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name KmcToken --new-contract-version 2
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name ElzToken1155 --new-contract-version 2
- * eg: npx hardhat upgrade-contract --network localhost --new-contract-name Everlazaar --new-contract-version 2
+ * eg: npx hardhat upgrade-contract --new-contract-name KmcToken --new-contract-version 2      --network localhost
+ * eg: npx hardhat upgrade-contract --new-contract-name ElzToken1155 --new-contract-version 2  --network localhost
+ * eg: npx hardhat upgrade-contract --new-contract-name Everlazaar --new-contract-version 2    --network localhost
  */
 task('upgrade-contract', 'Upgrades a specified contract to network')
   .addParam('newContractName', 'The name of the new contract ')
   .addParam('newContractVersion', 'The version of the new contract ' +
-    '\neg: npx hardhat upgrade-contract --network localhost --new-contract-name Token20 --new-contract-version 2')
+    '\neg: npx hardhat upgrade-contract --new-contract-name ElzToken1155 --new-contract-version 2  --network localhost')
   .setAction(async ({newContractName, newContractVersion}, hre) => {
     console.log('Upgrading contract[%s] to network [%s]', newContractName, hre.network.name)
 

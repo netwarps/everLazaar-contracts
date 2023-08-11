@@ -45,18 +45,19 @@ Follow these instructions to deploy a new instance:
 1. Edit `hardhat.config.js`, setting the values for `INFURA_API_KEY` and `MAINNET_PRIVATE_KEY`.
 2. Edit `deployment-params.js`, setting your desired deployment parameters.
 3. Run `npx hardhat deploy-all-proxy --network mainnet` .
-4. Edit `hardhat.config.js`, setting the address of the Everlazaar in `networks.mainnet.deployedContracts.kuggamax`.
+4. Edit `hardhat.config.js`, setting the address of the Everlazaar in `networks.mainnet.deployedContracts.mainContract`.
 
 ### Interacting with the smart contracts
 
 This project has tasks to work with Everlazaar contracts. To use them, you should first follow these instructions:
 
 1. Edit `hardhat.config.js`, setting the values for `INFURA_API_KEY` and `MAINNET_PRIVATE_KEY`.
-2. Make sure you have the right address in `hardhat.config.js`'s `networks.mainnet.deployedContracts.kuggamax` field.
+2. Make sure you have the right address in `hardhat.config.js`'s `networks.mainnet.deployedContracts.mainContract` field.
+3. Add `--network network-name` parameter to specify the blockchain when using below hardhat tasks.
 
 ```
 
-npx hardhat deploy-all-proxy
+npx hardhat deploy-all-proxy     (--network localhost)
 
 npx hardhat deposit --amount 0.002
 
@@ -76,3 +77,17 @@ npx hardhat permit-mint --article-contract-id 1 --amount 3
 
 ```
 
+### Upgrading specified contract
+
+1. Ensure the `newContractName` is correct.
+2. Add `--network network-name` parameter to specify the blockchain when using below hardhat tasks.
+
+```
+
+npx hardhat upgrade-contract --new-contract-name Everlazaar   --new-contract-version 2  (--network localhost)
+
+npx hardhat upgrade-contract --new-contract-name ElzToken1155 --new-contract-version 2  (--network localhost)
+
+npx hardhat upgrade-contract --new-contract-name KmcToken     --new-contract-version 2  (--network localhost)
+
+```

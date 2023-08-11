@@ -235,6 +235,32 @@ task('set-mint-deposit', 'Administrator set value of article mint deposit')
 
   })
 
+
+task('set-base-uri', 'Administrator set value of token1155 base uri')
+    .addParam('newUri', 'The new base uri, use --new-uri www.domain.com')
+    .setAction(async ({ newUri }, hre) => {
+        // Make sure everything is compiled
+        await hre.run('compile')
+
+        const { mainContract, _,token1155 } = await getDeployedContracts(hre)
+        if (mainContract === undefined || token1155 === undefined) {
+            return
+        }
+
+        const [admin] = await hre.ethers.getSigners()
+
+        const oldUri = await token1155.uri(0)
+        console.log('oldUri: ', oldUri)
+        console.log('param : ', newUri)
+
+        await mainContract.setToken1155BaseUri(newUri)
+
+        newUri = await token1155.uri(0)
+        console.log('newUri: ', newUri)
+
+        //expect(newDeposit).to.be.equal(deposit)
+    })
+
 task('tt', 'Shows test')
   .setAction(async (_, hre) => {
     const accounts = await hre.ethers.getSigners()
@@ -274,16 +300,18 @@ task('debug', 'Shows debug info')
 
     count = accounts.length > 3 ? 3 : accounts.length
     console.log('\n-------------------------------------------------------------')
-    console.log('Print first 3; Accounts count:', accounts.length)
+    console.log('Print deployer and first 3 accounts; Accounts count:', accounts.length)
+    console.log('MainContract owner =[%s]', await mainContract.owner())
     //print first 3 account if enough
     for (let i = 0; i < count; i++) {
-      console.log('accounts[%d].addr=[%s]', i, accounts[i].address)
+      console.log('  accounts[%d].addr =[%s]', i, accounts[i].address)
     }
 
     console.log('\n-------------------------------------------------------------')
-    console.log('ArticleDeposit   :', hre.ethers.utils.formatEther(await mainContract.articleDeposit()))
-    console.log('MintDeposit      :', hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
-    console.log('Kmc total supply :', hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
+    console.log('ArticleDeposit    :', hre.ethers.utils.formatEther(await mainContract.articleDeposit()))
+    console.log('MintDeposit       :', hre.ethers.utils.formatEther(await mainContract.mintDeposit()))
+    console.log('Kmc total supply  :', hre.ethers.utils.formatEther(await kmcToken.totalSupply()))
+    console.log('Token1155 baseUri :', await token1155.uri(0))
 
     const k0 = await deployer.getBalance()
     const k1 = await deployer.provider.getBalance(mainContract.address)
