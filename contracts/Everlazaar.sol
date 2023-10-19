@@ -194,34 +194,34 @@ contract Everlazaar is Initializable, ContextUpgradeable, EIP712Upgradeable, Own
     }
 
     // transfer native tokens to the contract, get some ERC20 back
-    function deposit() public noReentrancy payable {
-        require(msg.value >= 1000000000000, "Everlazaar::deposit - deposit too little");
-
-        uint256 amount = msg.value;
-
-        require(
-            _kmc.transfer(msg.sender, amount * 1000),
-            "Everlazaar: Deposit transfer failed"
-        );
-
-        emit Deposit(
-            msg.sender,
-            amount
-        );
-    }
+//    function deposit() public noReentrancy payable {
+//        require(msg.value >= 1000000000000, "Everlazaar::deposit - deposit too little");
+//
+//        uint256 amount = msg.value;
+//
+//        require(
+//            _kmc.transfer(msg.sender, amount * 1000),
+//            "Everlazaar: Deposit transfer failed"
+//        );
+//
+//        emit Deposit(
+//            msg.sender,
+//            amount
+//        );
+//    }
 
     // transfer ERC20 to proportionally withdraw native tokens
-    function withdraw(uint256 amount) public noReentrancy {
-        // collect token from sender and store it
-        require(_kmc.transferFrom(msg.sender, address(this), amount), "Everlazaar::withdraw - withdraw token transfer failed");
-
-        payable(msg.sender).transfer(amount / 1000);
-
-        emit Withdraw(
-            msg.sender,
-            amount
-        );
-    }
+//    function withdraw(uint256 amount) public noReentrancy {
+//        // collect token from sender and store it
+//        require(_kmc.transferFrom(msg.sender, address(this), amount), "Everlazaar::withdraw - withdraw token transfer failed");
+//
+//        payable(msg.sender).transfer(amount / 1000);
+//
+//        emit Withdraw(
+//            msg.sender,
+//            amount
+//        );
+//    }
 
     //Permit related methods similar with ERC20Permit
     function nonces(address owner) public view returns (uint256) {

@@ -3,17 +3,15 @@ require('@openzeppelin/hardhat-upgrades');
 require('@nomiclabs/hardhat-ethers')
 require('@nomiclabs/hardhat-etherscan')
 
+require("./tasks/deploy-upgrade-tasks");
+require("./tasks/function-tasks");
 
 // require('dotenv').config();
-require('dotenv').config({path: '.env.test.pdm'});
+require('dotenv').config({path: '.env.test.ucl.mainnet'});
 // require('dotenv').config({path: '.env.test.ucl'});
 // require('dotenv').config({path: '.env.prod'});
 
 const { POLYGON_MUMBAI_RPC_PROVIDER, POLYGONSCAN_API_KEY } = process.env;
-
-require("./tasks/deploy-upgrade-tasks");
-require("./tasks/function-tasks");
-
 
 const ACCOUNT_PRIVATE_KEY = process.env.ACCOUNT_PRIVATE_KEY;
 const USER_ACCOUNT_PRIVATE_KEY = process.env.USER_ACCOUNT_PRIVATE_KEY
@@ -111,6 +109,15 @@ module.exports = {
       deployedContracts:{
         mainContract: '0x5B89Fae308e78CB67B79623F0854A0B53107D1C4'
       }
+    },
+    polygonMainNet_ucl: { //HK ucloud test on main net
+      url: polygonMainNetNodeUrl,
+      gasLimit:86000000,
+      accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
+      deployedContracts:{
+        mainContract: '0x111'
+      },
+      timeout: 240000
     }
   }
 };
