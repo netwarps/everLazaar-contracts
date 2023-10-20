@@ -112,12 +112,12 @@ module.exports = {
     },
     polygonMainNet_ucl: { //HK ucloud test on main net
       url: polygonMainNetNodeUrl,
-      gasLimit:86000000,
+      gasLimit:96000000,
       accounts: [`0x${ACCOUNT_PRIVATE_KEY}`, `0x${USER_ACCOUNT_PRIVATE_KEY}`],
       deployedContracts:{
-        mainContract: '0x111'
+        mainContract: '0xd73e71e7F933038292DFdAf30627b3f30be8Ba82'
       },
-      timeout: 240000
+      timeout: 600000
     }
   }
 };

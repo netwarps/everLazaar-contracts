@@ -195,8 +195,8 @@ const deployAllByProxy = async (needConfirm, hre) => {
 
   //Token1155
   console.log('Start to deploy [%s]:', deployedToken1155ContractName)
-  const Token1155 = await hre.ethers.getContractFactory(deployedToken1155ContractName, deployer)
-  const token1155 = await hre.upgrades.deployProxy(Token1155, [''])
+  const token1155Factory = await hre.ethers.getContractFactory(deployedToken1155ContractName, deployer)
+  const token1155 = await hre.upgrades.deployProxy(token1155Factory, [''])
   await token1155.deployed()
 
   console.log('[%s] Proxy address:', deployedToken1155ContractName, token1155.address)
@@ -275,4 +275,7 @@ module.exports = {
   setDeployedToken20Name,
   setDeployedToken1155Name,
   justWait,
+  initToken20ContractName,
+  initToken1155ContractName,
+  initMainContractName
 }

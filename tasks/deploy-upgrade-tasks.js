@@ -8,8 +8,12 @@ const {
   getDeployedToken20Name,
   getDeployedToken1155Name,
   justWait,
+  initToken20ContractName,
+  initToken1155ContractName,
+  initMainContractName
 } = require('../scripts/utils')
 const {UpgradeProxyOptions} = require("@openzeppelin/hardhat-upgrades/dist/utils");
+const deploymentParams = require("./deployment-params");
 
 
 
@@ -238,3 +242,150 @@ task('upgrade-contract', 'Upgrades a specified contract to network')
     console.log('Token1155 version :', await token1155.getVersion())
     console.log('Main      version :', await mainContract.getVersion())
   })
+
+/**
+ * This task using proxy to deploy a kmc contract.
+ */
+task('deploy-kmc', 'Deploys new instance of kmc contract')
+  .setAction(async (_, hre) => {
+    console.log('')
+    console.log('----------------------------------------------------------------------------')
+    console.log('Deploying kmc contract to network --- [%s] by Proxy, sure?', hre.network.name)
+    console.log('----------------------------------------------------------------------------')
+    console.log('')
+
+    console.log(
+      'Deployment parameters:\n',
+      '  initKmcSupply :', deploymentParams.INITIAL_KMC_SUPLY, '\n'
+    )
+
+    const info = 'Please confirm to deploy to network [ ' + hre.network.name + ' ] ??'
+    let prompt = new Confirm(info)
+    let confirmation = await prompt.run()
+
+    if (!confirmation) {
+      console.log('You aborted the procedure !!')
+      return
+    }
+    await hre.run('compile')
+
+    const [deployer] = await hre.ethers.getSigners()
+
+    console.log('Deploying contracts with the account:', deployer.address)
+    console.log('Deployer native token balance:', (await deployer.getBalance()).toString())
+
+    const supply = hre.ethers.utils.parseEther(deploymentParams.INITIAL_KMC_SUPLY)
+
+    const contractName = initToken20ContractName
+    console.log('Start to deploy [%s]:', contractName)
+    const factory = await hre.ethers.getContractFactory(contractName, deployer) //specify the deployer, which is the contract owner
+    const contract = await hre.upgrades.deployProxy(factory, [supply], {initializer: 'initialize'})
+    await contract.deployed()
+
+    console.log('[%s] Proxy address:', contractName, contract.address)
+
+    console.log('---------------------------------------------------------------------')
+    const supply2 = await contract.totalSupply()
+    console.log('total Supply:', supply2)
+
+    console.log('-----------------------------------------------------------------------')
+  })
+
+/**
+ * This task using proxy to deploy a token1155 contract.
+ */
+task('deploy-1155', 'Deploys new instance of token1155 contract')
+  .setAction(async (_, hre) => {
+    console.log('')
+    console.log('----------------------------------------------------------------------------')
+    console.log('Deploying token1155 contract to network --- [%s] by Proxy, sure?', hre.network.name)
+    console.log('----------------------------------------------------------------------------')
+    console.log('')
+
+    const info = 'Please confirm to deploy to network [ ' + hre.network.name + ' ] ??'
+    let prompt = new Confirm(info)
+    let confirmation = await prompt.run()
+
+    if (!confirmation) {
+      console.log('You aborted the procedure !!')
+      return
+    }
+    await hre.run('compile')
+
+    const [deployer] = await hre.ethers.getSigners()
+
+    console.log('Deploying contracts with the account:', deployer.address)
+    console.log('Deployer native token balance:', (await deployer.getBalance()).toString())
+
+    const contractName = initToken1155ContractName
+    console.log('Start to deploy [%s]:', contractName)
+    const factory = await hre.ethers.getContractFactory(contractName, deployer) //specify the deployer, which is the contract owner
+    const contract = await hre.upgrades.deployProxy(factory, [''])
+    await contract.deployed()
+
+    console.log('[%s] Proxy address:', contractName, contract.address)
+    console.log('--------------------------------------------------------------------------------')
+  })
+
+/**
+ * This task using proxy to deploy a main contract Everlazaar.
+ */
+task('deploy-main', 'Deploys new instance of Main Everlazaar contract')
+  .addParam('erc20Addr', 'The address of Erc20 deployed before')
+  .addParam('erc1155Addr', 'The address of Erc1155 deployed before')
+  .setAction(async ({erc20Addr, erc1155Addr}, hre) => {
+    console.log('')
+    console.log('----------------------------------------------------------------------------')
+    console.log('Deploying Main Everlazaar contract to network --- [%s] by Proxy, sure?', hre.network.name)
+    console.log('----------------------------------------------------------------------------')
+    console.log('')
+    console.log(
+      'Deployment parameters:\n',
+      '  articleDeposit:', deploymentParams.ARTICLE_DEPOSIT, '\n',
+      '  mintDeposit   :', deploymentParams.MINT_DEPOSIT, '\n',
+      '  initKmcSupply :', deploymentParams.INITIAL_KMC_SUPLY, '\n'
+    )
+    console.log('Erc20Addr   :', erc20Addr)
+    console.log('Erc1155Addr :', erc1155Addr)
+
+    await hre.run('compile')
+
+    const info = 'Please confirm to deploy to network [ ' + hre.network.name + ' ] ??'
+    let prompt = new Confirm(info)
+    let confirmation = await prompt.run()
+
+    if (!confirmation) {
+      console.log('You aborted the procedure !!')
+      return
+    }
+
+    const [deployer] = await hre.ethers.getSigners()
+
+    console.log('Deploying contracts with the account:', deployer.address)
+    console.log('Deployer native token balance:', (await deployer.getBalance()).toString())
+
+    const contractName = initMainContractName
+    console.log('Start to deploy [%s]:', contractName)
+    const mainFactory = await  hre.ethers.getContractFactory(contractName, deployer)//specify the deployer, which is the contract owner
+    const mainContract = await  hre.upgrades.deployProxy(mainFactory, [
+      erc20Addr,
+      erc1155Addr,
+      deploymentParams.ARTICLE_DEPOSIT,
+      deploymentParams.MINT_DEPOSIT,
+    ])
+
+    await mainContract.deployed()
+
+    console.log('[%s] Proxy address:', contractName, mainContract.address)
+
+    //transfer token1155's ownership, from deployer to main contract
+    const token1155 = await hre.ethers.getContractAt(initToken1155ContractName, erc1155Addr)
+    await token1155.transferOwnership(mainContract.address)
+    console.log('Transferred token1155 ownership to [%s]', contractName)
+
+    console.log('--------------------------------------------------------------------------------')
+    console.log('Set this address in hardhat.config.js\'s networks section to use the other tasks !!!')
+    console.log('--------------------------------------------------------------------------------\n')
+    console.log('')
+  })
+
